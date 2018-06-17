@@ -974,16 +974,45 @@ outras funções auxiliares que sejam necessárias.
 \subsection*{Problema 1}
 
 \begin{code}
-inBlockchain = undefined
-outBlockchain = undefined
-recBlockchain = undefined    
-cataBlockchain = undefined     
-anaBlockchain = undefined
-hyloBlockchain = undefined
+inBlockchain = either Bc Bcs
 
-allTransactions = undefined
-ledger = undefined
-isValidMagicNr = undefined
+outBlockchain (Bc bc) =  i1 (bc)
+outBlockchain (Bcs (bc,a)) = i2 (bc,a)
+
+recBlockchain f = id -|- id >< f
+
+cataBlockchain f =  f . recBlockchain(cataBlockchain f). outBlockchain
+
+anaBlockchain f = inBlockchain.recBlockchain ( anaBlockchain f) . f 
+
+hyloBlockchain f g = cataBlockchain f. anaBlockchain g 
+
+get_transaction :: Either Block (Block,Transactions) -> Transactions
+get_transaction = either (p2.p2) (conc . ((p2.p2)><id))
+
+allTransactions = (cataBlockchain get_transaction)
+
+
+getLedger :: Either Block (Block,Ledger) ->  Ledger
+getLedger = either ((cataList createLedger).(p2.p2)) (conc.(((cataList createLedger).(p2.p2))><id))
+        where createLedger = either nil (cons.((swap.p2)><id))
+
+ledger = (cataBlockchain getLedger)
+
+
+repetidos :: MagicNo -> [MagicNo] -> Bool
+repetidos = cataList elem
+
+listMagic :: Either Block (Block, ([MagicNo],[Bool])) -> ([MagicNo],[Bool])
+{-  
+listMagic (Left b) = ([(p1 b)],[True])
+listMagic (Right (b,(c,d))) = ([(p1 b)] ++ c,[repetidos (p1 b) c] ++ d)
+-}
+listMagic = either (cons.((p1)><nil)) ()
+
+
+isValidMagicNr = (catalist == ).p2 (cataBlockchain listMagic)
+
 \end{code}
 
 
