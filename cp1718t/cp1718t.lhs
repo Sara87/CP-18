@@ -1,4 +1,4 @@
-\documentclass[a4paper]{article}
+  \documentclass[a4paper]{article}
 \usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage{palatino}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
@@ -1000,18 +1000,15 @@ getLedger = either ((cataList createLedger).(p2.p2)) (conc.(((cataList createLed
 ledger = (cataBlockchain getLedger)
 
 
-repetidos :: MagicNo -> [MagicNo] -> Bool
-repetidos = cataList elem
 
 listMagic :: Either Block (Block, ([MagicNo],[Bool])) -> ([MagicNo],[Bool])
-{-  
 listMagic (Left b) = ([(p1 b)],[True])
-listMagic (Right (b,(c,d))) = ([(p1 b)] ++ c,[repetidos (p1 b) c] ++ d)
--}
-listMagic = either (cons.((p1)><nil)) ()
+listMagic (Right (b,(c,d))) = ([(p1 b)] ++ c,[not (elem (p1 b) c)] ++ d)
 
+equals :: Either () (Bool,Bool) -> Bool
+equals = either (true) (uncurry (&&))
 
-isValidMagicNr = (catalist == ).p2 (cataBlockchain listMagic)
+isValidMagicNr = (cataList equals).p2.(cataBlockchain listMagic)
 
 \end{code}
 
@@ -1019,8 +1016,11 @@ isValidMagicNr = (catalist == ).p2 (cataBlockchain listMagic)
 \subsection*{Problema 2}
 
 \begin{code}
-inQTree = undefined
-outQTree = undefined
+inQTree = either (Cell (p1)><((p1.p2)><(p2.p2)))  (QTree QTree QTree QTree)
+
+outQTree (Cell a b c) = i1 (a,b,c) 
+outQTree (Block a b c d) = i2 (a,b,c,d)
+
 baseQTree = undefined
 recQTree = undefined
 cataQTree = undefined
