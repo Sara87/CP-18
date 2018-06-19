@@ -1014,28 +1014,53 @@ isValidMagicNr = (cataList equals).p2.(cataBlockchain listMagic)
 \subsection*{Problema 2}
 
 \begin{code}
-inQTree = undefined
---inQTree (a b c) = undefined
---inQTree (a b c d ) = undefined
---inQTree = either (Cell) (QTree >< (QTree))
+
 {-
-outQTree (Cell a b c) = i1 (a,b,c) 
-outQTree (Block a b c d) = i2 (a,b,c,d)
+data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a)
+  deriving (Eq,Show)
+  
+inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a
+outQTree :: QTree a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
+baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))
+recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))
+cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
+anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2
+hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
 -}
-outQTree = undefined
-baseQTree = undefined
-recQTree = undefined
-cataQTree = undefined
-anaQTree = undefined
-hyloQTree = undefined
+
+inQTree (Left (a,(b,c))) = Cell a b c
+inQTree (Right (a,(b,(c,d)))) = Block a b c d
+outQTree (Cell a b c) = i1 (a,(b,c))
+outQTree (Block a b c d) = i2 (a,(b,(c,d)))
+baseQTree g h = (g >< id) -|- (h><(h >< (h >< h)))
+recQTree f = baseQTree id f
+cataQTree f = f . recQTree(cataQTree f).outQTree
+anaQTree f =  inQTree . recQTree(anaQTree f).f
+hyloQTree f g= cataQTree f . anaQTree g
 
 instance Functor QTree where
-    fmap = undefined
+    fmap gen = cataQTree (inQTree. baseQTree gen id)
 
-rotateQTree = undefined
-scaleQTree = undefined
-invertQTree = undefined
-compressQTree = undefined
+
+rotateQTree = cataQTree (inQTree.f) -- inQTree para converter o either do cata para Qtree
+  where f = g -|- h  -- Co-produto para poder criar um either no fim
+        g = id >< swap
+        h = split (p1.p2.p2) (s1)
+        s1 = split (p1) (s2)
+        s2 = split (p2.p2.p2) (p1.p2)
+
+
+scaleQTree i = anaQTree (f . outQTree) -- Out para converter a Qtree em either para a  função ana
+  where f = g -|- id
+        g = id >< ((i*) >< (i*))
+
+
+--USAMOS A PixelRGBA8 porque é o monade que é guardado no a da QTree
+invertQTree = fmap invert -- FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS
+  where invert (PixelRGBA8 r g b a) = PixelRGBA8 (255-r) (255-g) (255-b) (a) 
+
+
+compressQTree = cataQTree (inQTree.f)
 outlineQTree = undefined
 \end{code}
 
@@ -1049,9 +1074,8 @@ loop = undefined
 \subsection*{Problema 4}
 
 \begin{code}
-inFTree = either Unit (uncurry Comp)
-outFTree (Unit b) = i1 b
-outFTree (Comp a b c) = >< 
+inFTree  = undefined
+outFTree = undefined
 baseFTree = undefined
 recFTree = undefined
 cataFTree = undefined
