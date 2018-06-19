@@ -993,13 +993,11 @@ get_transaction = either (p2.p2) (conc . ((p2.p2)><id))
 allTransactions = (cataBlockchain get_transaction)
 
 
-getLedger :: Either Block (Block,Ledger) ->  Ledger
-getLedger = either ((cataList createLedger).(p2.p2)) (conc.(((cataList createLedger).(p2.p2))><id))
-        where createLedger = either nil (cons.((swap.p2)><id))
-
-ledger = (cataBlockchain getLedger)
-
-
+--(cataList h).col.(cataList g).
+ledger = (cataList h).col.(cataList g).(cataList f).allTransactions
+  where f = either nil (cons . ((split (id >< negate.p2) p2.(id >< swap))><id))
+        g = either nil (conc .(conc . ((singl >< singl) )><id))
+        h = either nil (cons .((id>< sum)><id))
 
 listMagic :: Either Block (Block, ([MagicNo],[Bool])) -> ([MagicNo],[Bool])
 listMagic (Left b) = ([(p1 b)],[True])
@@ -1016,11 +1014,15 @@ isValidMagicNr = (cataList equals).p2.(cataBlockchain listMagic)
 \subsection*{Problema 2}
 
 \begin{code}
-inQTree = either (Cell (p1)><((p1.p2)><(p2.p2)))  (QTree QTree QTree QTree)
-
+inQTree = undefined
+--inQTree (a b c) = undefined
+--inQTree (a b c d ) = undefined
+--inQTree = either (Cell) (QTree >< (QTree))
+{-
 outQTree (Cell a b c) = i1 (a,b,c) 
 outQTree (Block a b c d) = i2 (a,b,c,d)
-
+-}
+outQTree = undefined
 baseQTree = undefined
 recQTree = undefined
 cataQTree = undefined
@@ -1047,8 +1049,9 @@ loop = undefined
 \subsection*{Problema 4}
 
 \begin{code}
-inFTree = undefined
-outFTree = undefined
+inFTree = either Unit (uncurry Comp)
+outFTree (Unit b) = i1 b
+outFTree (Comp a b c) = >< 
 baseFTree = undefined
 recFTree = undefined
 cataFTree = undefined
