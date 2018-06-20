@@ -1060,30 +1060,61 @@ invertQTree = fmap invert -- FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS
   where invert (PixelRGBA8 r g b a) = PixelRGBA8 (255-r) (255-g) (255-b) (a) 
 
 
-compressQTree = cataQTree (inQTree.f)
+--compressQTree = cataQTree (inQTree.f)
+compressQTree = undefined
+
 outlineQTree = undefined
 \end{code}
 
 \subsection*{Problema 3}
 
 \begin{code}
-base = undefined
+
+flatet :: ((Nat,Nat),(Nat,Nat)) -> (Nat,Nat,Nat,Nat)
+flatet ((a,b),(c,d)) = (a,b,c,d)
+
+
+base = flatet . split (f) (g)
+  where flatet  ((a,b),(c,d))= (a,b,c,d) 
+        f = split (one) (succ)
+        g = split (one) (one)
 loop = undefined
 \end{code}
 
 \subsection*{Problema 4}
 
+
 \begin{code}
-inFTree  = undefined
-outFTree = undefined
-baseFTree = undefined
-recFTree = undefined
-cataFTree = undefined
-anaFTree = undefined
-hyloFTree = undefined
+
+{-
+data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
+type PTree = FTree Square Square
+type Square = Float
+
+inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
+outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
+baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
+recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
+cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
+anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
+hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
+
+-}
+
+inFTree (Left b) = Unit b
+inFTree (Right (a,(b,c))) = Comp a b c
+
+outFTree (Unit b) = i1 b
+outFTree (Comp a b c) = i2 (a,(b,c))  
+
+baseFTree f g h = g -|- (f >< ( h >< h))
+recFTree f = baseFTree id id f 
+cataFTree f = f . recFTree ( cataFTree f). outFTree
+anaFTree f = inFTree . recFTree ( anaFTree f) . f
+hyloFTree f g = cataFTree f . anaFTree g
 
 instance Bifunctor FTree where
-    bimap = undefined
+    bimap f g = cataFTree ( inFTree . baseFTree f g id)
 
 generatePTree = undefined
 drawPTree = undefined
@@ -1092,7 +1123,9 @@ drawPTree = undefined
 \subsection*{Problema 5}
 
 \begin{code}
+-- Não sei o que é
 singletonbag = undefined
+-- MULTIPLICAÇÂO DO MONADE - FUNÇÃO MU
 muB = undefined
 dist = undefined
 \end{code}
