@@ -660,7 +660,7 @@ g 0 = 1
 g (d+1) = underbrace ((d+1)) (s d) * g d
 
 s 0 = 1
-s (d+1) = s n + 1
+s (d+1) = s d + 1
 \end{spec}
 A partir daqui alguém derivou a seguinte implementação:
 \begin{code}
@@ -673,7 +673,7 @@ derive as funções |base k| e |loop| que são usadas como auxiliares acima.
 \begin{propriedade}
 Verificação que |bin n k| coincide com a sua especificação (\ref{eq:bin}):
 \begin{code}
-prop3 n k = (bin n k) == (fac n) % (fac k * (fac ((n-k))))
+prop3 (NonNegative n) (NonNegative k) = k <= n ==> (bin n k) == (fac n) % (fac k * (fac ((n-k))))
 \end{code}
 \end{propriedade}
 
@@ -736,7 +736,7 @@ drawPTree :: PTree -> [Picture]
 window = (InWindow "CP" (800,800) (0,0))
 square s = rectangleSolid s s
 
-animatePTree n = animate window white draw
+animatetePTree n = animate window white draw
     where
     pics = drawPTree (generatePTree n)
     draw t = pics !! (floor (t/2))
@@ -1061,24 +1061,46 @@ invertQTree = fmap invert -- FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS
 
 
 --compressQTree = cataQTree (inQTree.f)
-compressQTree = undefined
+compressQTree i = undefined
+
 
 outlineQTree = undefined
+{-
+outlineQTree f = cataQTree(g)
+      where g = either (cond f h i p1) ( Converter os Tuplos de Matrix, para uma unica matriz j)
+            h = qt2bm.Cell 1 p1.p2 p2.p2 
+            i = qt2bm.Cell 0 p1.p2 p2.p2
+            j :: (Matrix,(Matrix,(Matrix,Matrix))) -> Matrix
+            j = uncurry k . uncurry k .uncurry k
+            k :: (Matrix,Matrix) -> Matrix
+            k = ?????????
+-}
+
 \end{code}
 
 \subsection*{Problema 3}
 
 \begin{code}
 
-flatet :: ((Nat,Nat),(Nat,Nat)) -> (Nat,Nat,Nat,Nat)
-flatet ((a,b),(c,d)) = (a,b,c,d)
+
+flatet :: ((Integer,Integer),(Integer,Integer)) -> (Integer,Integer,Integer,Integer)
+flatet ((a,b),(c,d)) = (a,b,c,d) 
+
+
+unflatet :: (Integer, Integer, Integer, Integer) -> ((Integer,Integer),(Integer,Integer))
+unflatet (a,b,c,d) = ((a,b),(c,d))
 
 
 base = flatet . split (f) (g)
-  where flatet  ((a,b),(c,d))= (a,b,c,d) 
-        f = split (one) (succ)
+  where f = split (one) (succ)
         g = split (one) (one)
-loop = undefined
+
+--loop (a,b,c,d) = (a*b , b+1 , c*d, d+1 ) 
+loop = flatet . f .unflatet
+    where f = split (g) (h)
+          g = split (mul.p1) (succ.p2.p1)
+          h = split (mul.p2) (succ.p2.p2)          
+
 \end{code}
 
 \subsection*{Problema 4}
@@ -1101,6 +1123,7 @@ hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a
 
 -}
 
+
 inFTree (Left b) = Unit b
 inFTree (Right (a,(b,c))) = Comp a b c
 
@@ -1115,7 +1138,10 @@ hyloFTree f g = cataFTree f . anaFTree g
 
 instance Bifunctor FTree where
     bimap f g = cataFTree ( inFTree . baseFTree f g id)
-
+{-
+generatePTree = anaFTree (f)
+  where f a = if a == 0 then  Right(1 + (sqrt (2) / 2)^ a) else Left((sqrt (2) / 2)^ a , (a-1 , a-1))
+-}
 generatePTree = undefined
 drawPTree = undefined
 \end{code}
@@ -1382,7 +1408,7 @@ invertBMP from to = withBMP from to invertbm
 
 depthQTree :: QTree a -> Int
 depthQTree = cataQTree (either (const 0) f)
-    where f (a,(b,(c,d))) = maximum [a,b,c,d]
+    where f (a,(b,(c,d))) = 1 + maximum [a,b,c,d]
 
 compressbm :: Eq a => Int -> Matrix a -> Matrix a
 compressbm n = qt2bm . compressQTree n . bm2qt
