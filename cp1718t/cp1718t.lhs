@@ -973,41 +973,65 @@ outras funções auxiliares que sejam necessárias.
 
 \subsection*{Problema 1}
 
+
 \begin{code}
 inBlockchain = either Bc Bcs
+\end{code}
 
+
+
+\begin{code}
 outBlockchain (Bc bc) =  i1 (bc)
 outBlockchain (Bcs (bc,a)) = i2 (bc,a)
+\end{code}
 
+\begin{code}
 recBlockchain f = id -|- id >< f
+\end{code}
 
+\begin{code}
 cataBlockchain f =  f . recBlockchain(cataBlockchain f). outBlockchain
+\end{code}
 
+
+\begin{code}
 anaBlockchain f = inBlockchain.recBlockchain ( anaBlockchain f) . f 
+\end{code}
 
+\begin{code}
 hyloBlockchain f g = cataBlockchain f. anaBlockchain g 
+\end{code}
 
+\begin{code}
 get_transaction :: Either Block (Block,Transactions) -> Transactions
 get_transaction = either (p2.p2) (conc . ((p2.p2)><id))
+\end{code}
 
+\begin{code}
 allTransactions = (cataBlockchain get_transaction)
+\end{code}
 
 
---(cataList h).col.(cataList g).
+\begin{code}
 ledger = (cataList h).col.(cataList g).(cataList f).allTransactions
   where f = either nil (cons . ((split (id >< negate.p2) p2.(id >< swap))><id))
         g = either nil (conc .(conc . ((singl >< singl) )><id))
         h = either nil (cons .((id>< sum)><id))
+\end{code}
+\begin{code}
+
 
 listMagic :: Either Block (Block, ([MagicNo],[Bool])) -> ([MagicNo],[Bool])
 listMagic (Left b) = ([(p1 b)],[True])
 listMagic (Right (b,(c,d))) = ([(p1 b)] ++ c,[not (elem (p1 b) c)] ++ d)
 
+
 equals :: Either () (Bool,Bool) -> Bool
 equals = either (true) (uncurry (&&))
+\end{code}
 
+\begin{code}
 isValidMagicNr = (cataList equals).p2.(cataBlockchain listMagic)
-
 \end{code}
 
 
@@ -1028,12 +1052,25 @@ anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree 
 hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
 -}
 
+
 inQTree (Left (a,(b,c))) = Cell a b c
 inQTree (Right (a,(b,(c,d)))) = Block a b c d
+\end{code}
+
+\begin{code}
 outQTree (Cell a b c) = i1 (a,(b,c))
 outQTree (Block a b c d) = i2 (a,(b,(c,d)))
+\end{code}
+
+\begin{code}
 baseQTree g h = (g >< id) -|- (h><(h >< (h >< h)))
+\end{code}
+
+\begin{code}
 recQTree f = baseQTree id f
+\end{code}
+
+\begin{code}
 cataQTree f = f . recQTree(cataQTree f).outQTree
 anaQTree f =  inQTree . recQTree(anaQTree f).f
 hyloQTree f g= cataQTree f . anaQTree g
