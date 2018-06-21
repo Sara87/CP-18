@@ -150,7 +150,7 @@ singl = return
 class (Functor f, Monad f) => Strong f where
       rstr :: (f a,b) -> f(a,b)
       rstr(x,b) = do a <- x ; return (a,b)
-      lstr :: (b,f a) -> f(b,a)
+      lstr :: (b,f a) -> f( b,a)
       lstr(b,x) = do a <- x ; return (b,a)
 
 instance Strong IO

@@ -999,14 +999,13 @@ ledger = (cataList h).col.(cataList g).(cataList f).allTransactions
         g = either nil (conc .(conc . ((singl >< singl) )><id))
         h = either nil (cons .((id>< sum)><id))
 
-listMagic :: Either Block (Block, ([MagicNo],[Bool])) -> ([MagicNo],[Bool])
-listMagic (Left b) = ([(p1 b)],[True])
+{-listMagic (Left b) = ([(p1 b)],[True])
 listMagic (Right (b,(c,d))) = ([(p1 b)] ++ c,[not (elem (p1 b) c)] ++ d)
+-}
 
-equals :: Either () (Bool,Bool) -> Bool
-equals = either (true) (uncurry (&&))
 
-isValidMagicNr = (cataList equals).p2.(cataBlockchain listMagic)
+isValidMagicNr = uncurry (==). (length>< (length.nub)) . dup . cataBlockchain f
+        where f = either (singl.p1) (cons.(p1><id)) 
 
 \end{code}
 
@@ -1060,21 +1059,30 @@ invertQTree = fmap invert -- FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS
   where invert (PixelRGBA8 r g b a) = PixelRGBA8 (255-r) (255-g) (255-b) (a) 
 
 
---compressQTree = cataQTree (inQTree.f)
-compressQTree i = undefined
+--ARRANJAR SE HOUVER TEMPO 
+-- Criar um cata que faça a subtração do valor de k, para poder descer até onde se quer manter a arvore igual, depois disso fazer a prune da qtree, juntando as cells de maneira correspondente
+compressQTree k qt = cataQTree' f (depthQTree qt - k) qt
+    where f k = p2p (id, pruneQTree) (k <= 0) . inQTree
+          cataQTree' f k = (f k) . recQTree (cataQTree' f (k-1)) . outQTree
 
 
-outlineQTree = undefined
-{-
-outlineQTree f = cataQTree(g)
-      where g = either (cond f h i p1) ( Converter os Tuplos de Matrix, para uma unica matriz j)
-            h = qt2bm.Cell 1 p1.p2 p2.p2 
-            i = qt2bm.Cell 0 p1.p2 p2.p2
-            j :: (Matrix,(Matrix,(Matrix,Matrix))) -> Matrix
-            j = uncurry k . uncurry k .uncurry k
-            k :: (Matrix,Matrix) -> Matrix
-            k = ?????????
--}
+
+pruneQTree = cataQTree (uncell . assocl . f)
+    where f = either id (split (colorQTree.p1) (addSizes.getSizes))
+          uncell = uncurry $ uncurry Cell
+          addSizes ((x1,y1), (x2,y2)) = (x1+x2, y1+y2)
+          getSizes = sizeQTree >< (sizeQTree.p2.p2)
+          colorQTree = cataQTree $ either p1 p1
+
+convert :: QTree Bool -> Matrix Bool
+convert = cataQTree(f)
+  where f = either g h 
+        g (c,(i,j)) = if (c && (i >= 3) && (j >=3)) then line i j else matrix j i (const c) 
+        h (a,(b,(c,d))) = ( a <|> b ) <-> (c <|> d)
+        line i j = ( (matrix 1 i true) <-> ( (matrix (j-2) 1 true) <|> ( ( matrix (j-2) (i-2) false) <|> ( matrix (j-2) 1 true) ))) <-> (matrix 1 i true) 
+
+outlineQTree f = convert .fmap f
+      
 
 \end{code}
 
