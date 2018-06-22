@@ -1,5 +1,5 @@
-  \documentclass[a4paper]{article}
-\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\documentclass[a4paper]{article}
+\usepackage{geometry}
 \usepackage{palatino}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
 \usepackage{graphicx}

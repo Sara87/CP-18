@@ -1,5 +1,5 @@
   \documentclass[a4paper]{article}
-\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
+\usepackage{geometry}
 \usepackage{palatino}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
 \usepackage{graphicx}
@@ -295,13 +295,13 @@
 
 \begin{center}\large
 \begin{tabular}{ll}
-\textbf{Grupo} nr. & 99 (preencher)
+\textbf{Grupo} nr. & 82 (preencher)
 \\\hline
-a11111 & Nome1 (preencher)	
+a73700 & Sara Alexandra da Silva Pereira
 \\
-a22222 & Nome2 (preencher)	
+a74155 & Bruno Filipe da Silva Ferreira 
 \\
-a33333 & Nome3 (preencher)	
+a74813 & André Filipe de Araújo Pereira de Sousa
 \end{tabular}
 \end{center}
 
@@ -692,21 +692,21 @@ Para a matriz \ensuremath{\Varid{bm}} de exemplo, a quadtree correspondente \ens
 \begin{subfigure}{0.5\textwidth}
 \centering
 \includegraphics[width=0.2\linewidth]{cp1718t_media/person2.png}
-\caption{Compresão de $2$ níveis.}
+\caption{Compressão de $2$ níveis.}
 \label{fig:person2}
 \end{subfigure}
 %
 \begin{subfigure}{0.5\textwidth}
 \centering
 \includegraphics[width=0.2\linewidth]{cp1718t_media/person3.png}
-\caption{Compresão de $3$ níveis.}
+\caption{Compressão de $3$ níveis.}
 \label{fig:person3}
 \end{subfigure}
 %
 \begin{subfigure}{0.5\textwidth}
 \centering
 \includegraphics[width=0.2\linewidth]{cp1718t_media/person4.png}
-\caption{Compresão de $4$ níveis.}
+\caption{Compressão de $4$ níveis.}
 \label{fig:person4}
 \end{subfigure}
 %
@@ -1302,37 +1302,96 @@ outras funções auxiliares que sejam necessárias.
 
 \subsection*{Problema 1}
 
+
+
+Sabendo o tipo da nossa estrutura podemos verificar que este ou contém um Block, denominado Bc , ou contém um tuplo com um Block e um BlockChain, sendo o tuplo denominado Bcs. Dessa maneira, dado um input, este será de um tipo ou do outro.
+
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{21}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{26}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{inBlockchain}\mathrel{=}\alt{\Conid{Bc}}{\Conid{Bcs}}{}\<[E]%
-\\[\blanklineskip]%
+\ColumnHook
+\end{hscode}\resethooks
+
+No caso do out queremos realizar a operação contrária, ou seja, criar apartir de uma BlockChain, um tipo que tanto pode ser um Bc ou um Bcs. Assim, queremos aplicar à nossa BlockChain a projeção à esquerda no caso desta ser um Bc ou a projeção à direita no caso contrário.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{26}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{outBlockchain}\;(\Conid{Bc}\;\Varid{bc})\mathrel{=}{}\<[26]%
 \>[26]{}i_1\;(\Varid{bc}){}\<[E]%
 \\
 \>[B]{}\Varid{outBlockchain}\;(\Conid{Bcs}\;(\Varid{bc},\Varid{a}))\mathrel{=}i_2\;(\Varid{bc},\Varid{a}){}\<[E]%
-\\[\blanklineskip]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Ao defenir a função rec estamos a defenir a função que trabalha sobre a soma que temos presente. Sendo dada uma função de transformação, esta será aplicada à parte do tipo que contem a informação do próximo elemento, neste caso sendo o BlockChain, presente no tuplo Bcs. Como verificado antes, temos um tipo que pode ser de dois tipos diferentes, assim para transformar esta soma é aplicado o co-produto na mesma, tendo assim criada a probabilidade de ser cada um dos tipos da soma. No entanto no lado direito da soma, temos presente um tipo que é um tuplo entre o tipo Bc e o tipo Bcs. Para tal é aplicado o produto neste tipo que transformaria o nosso tuplo no tuplo desejado.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{recBlockchain}\;\Varid{f}\mathrel{=}\Varid{id}+\Varid{id}\times\Varid{f}{}\<[E]%
-\\[\blanklineskip]%
+\ColumnHook
+\end{hscode}\resethooks
+
+A função cata permite transformar um dado tipo de dados usando uma função que realiza esta tranformação. Essa função de transformação permite transformar uma dada soma num tipo de dados unico. Para poder propagar a função pelo tipo é usada a função rec definida anteriormente, no entanto, o tipo de dados recebido, BlockChain, não corresponde ao tipo reccebido pela nossa rec. Para poder ultrupassar este problema é aplicada a função out definida, obtendo assim o tipo de dados pretendidos, e só após a função rec. A função que será aplicada a cada elemento é a propria função cata tendo como função de transformação a anterior, para que a mesma seja aplicada a cada elemento. Tendo feita a recursividade, podemos aplicar a função de transformação ao elemento atual. 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{21}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{cataBlockchain}\;\Varid{f}\mathrel{=}{}\<[21]%
 \>[21]{}\Varid{f}\comp \Varid{recBlockchain}\;(\Varid{cataBlockchain}\;\Varid{f})\comp \Varid{outBlockchain}{}\<[E]%
-\\[\blanklineskip]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+A função ana pretende fazer o contrário, sendo a mesma aplicada inicialmente ao tipo uníco recebido, permitindo transformar o tipo recebido numa soma. Depois da mesma ser aplicada iriamos realizar a recursividade, da mesma maneira feita no cata, usando a propria função ana e a função de transformação. Para depois poder obter o tipo de dados pretendido, é realizada a função in, que permite transformar a nossa soma num tipo de dados concreto.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{anaBlockchain}\;\Varid{f}\mathrel{=}\Varid{inBlockchain}\comp \Varid{recBlockchain}\;(\Varid{anaBlockchain}\;\Varid{f})\comp \Varid{f}{}\<[E]%
-\\[\blanklineskip]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{hyloBlockchain}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{cataBlockchain}\;\Varid{f}\comp \Varid{anaBlockchain}\;\Varid{g}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\Varid{get\char95 transaction}\mathbin{::}\Conid{Block}+(\Conid{Block},\Conid{Transactions})\to \Conid{Transactions}{}\<[E]%
-\\
-\>[B]{}\Varid{get\char95 transaction}\mathrel{=}\alt{\p2\comp \p2}{\mathsf{conc}\comp ((\p2\comp \p2)\times\Varid{id})}{}\<[E]%
-\\[\blanklineskip]%
+\ColumnHook
+\end{hscode}\resethooks
+
+De seguida é apresentada a defenição da função allTransactions, que permite obter a lista de Transações de uma dada blockchain. Para tal é aplicada a função cata à BlockChain sendo passada a função transformadora. Esta função é função de transformação da soma, sendo do primeiro lado aplicado a projeção 2, que obtem o tuplo (Time,Transactions) do block e após isso sendo a aplicada de novo a projeção 2 para se obter as Transactions. Do segundo lado da soma temos de aplicar a concatenação das Transactions de um elemento, sendo o mesmo obtido da mesma forma, com as Transcations já obtidas.   
+
+
+DIAGRAMA
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{allTransactions}\mathrel{=}(\Varid{cataBlockchain}\;\Varid{get\char95 transaction}){}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\onelinecomment (cataList h).col.(cataList g).}{}\<[E]%
 \\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{where}\;\Varid{get\char95 transaction}\mathrel{=}\alt{\p2\comp \p2}{\mathsf{conc}\comp ((\p2\comp \p2)\times\Varid{id})}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Na função ledger pretendemos obter o Value de Cada Entity segundo uma dada BlockChain. Para tal é aplicada a função allTransactions, para obter a lista de todas as Transaction da BlockChain. Após, seria aplicada uma cata à lista de transactions, permitindo transformar os tuplos (Entity1,(Value,Entity2)) em ((Entity1,-Value),(Entity2,Value)). Sabendo que as listas não são de um tipo concreto, é usada a função either para identificar os dois casos. No caso de lista vazia, teremos também uma lista vazia. No outro caso teremos de transforma o nosso tuplo e concatenar o mesmo com os restantes. Para criar o nosso tuplo é aplicado um split ao mesmo, permitindo assim criar um tuplo de tuplos. A primeira função do split será um produto entre o id de Entity1 e o negate aplicado apos a projeção 2 do tuplo presente dentro do tuplo inicial. Este negate serve para guardar a informação do Entity 1, receptor da transação. No caso da segunda função do split é aplicada a projeção 2 do tuplo criado apartir do produto de id com swap. Este swap permite obter a informação de forma a ser guardada pelo ledger.
+\par
+Após o primeiro cata, é necessário criar a lista que guardaria os tuplos presentes em cada projeção dos tuplos da lista anterior. Para isto é aplicado outro cata à lista, que permitira transformar cada elemento de maneira a que a informação (Entity,Value) esteja presente na mesma. No caso de paragem novamente usado a lista vazia, e no outro caso como anteriormente temos de adicionar a informação de um elemento aos já presentes. Para isso é criada uma lista entre os dois elementos do tuplo sendo essa depois concatenada com a informação restante.
+Para poder agrupar a informação das várias Entity é usada a função col, permitindo agrupar os nossos tuplos como (Entity,[Value]).
+\par
+Após isso é apenas necessário adicionar a informação presente na lista de Value para obter o Ledger pretendido. Para isso é utilizada uma cata que transforma apenas a segunda parte do tuplo presente.
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{ledger}\mathrel{=}(\Varid{cataList}\;\Varid{h})\comp \Varid{col}\comp (\Varid{cataList}\;\Varid{g})\comp (\Varid{cataList}\;\Varid{f})\comp \Varid{allTransactions}{}\<[E]%
 \\
 \>[B]{}\hsindent{3}{}\<[3]%
@@ -1343,10 +1402,17 @@ outras funções auxiliares que sejam necessárias.
 \\
 \>[3]{}\hsindent{6}{}\<[9]%
 \>[9]{}\Varid{h}\mathrel{=}\alt{\Varid{nil}}{\Varid{cons}\comp ((\Varid{id}\times\Varid{sum})\times\Varid{id})}{}\<[E]%
-\\[\blanklineskip]%
-\>[B]{}\mbox{\commentbegin listMagic (Left b) = ([(p1 b)],[True])
-listMagic (Right (b,(c,d))) = ([(p1 b)] ++ c,[not (elem (p1 b) c)] ++ d) \commentend}{}\<[E]%
-\\[\blanklineskip]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+Para verificar a validade dos Magic Numbers é necessário primeiramente obter uma lista de todos os Magic Numbers. Para isso é aplicada uma cata à BlockChain, que transformaria o primeiro elemento da soma num Magic Number e no segundo adicionava a sua informação à lista já presente. Após isso, duplicavamos a lista obtida, tendo um tuplo com a mesma lista. Depois disso, aplicavamos o produto ao tuplo, tendo de um lado o tamanho da lista e o outro o tamanho da lista depois de remover os repetidos de uma lista. Apos isso, comparavamos os dois elementos do tuplo, usando a função uncurry (==)
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{isValidMagicNr}\mathrel{=}\uncurry{(\equiv )}\comp (\length \times(\length \comp \Varid{nub}))\comp \Varid{dup}\comp \Varid{cataBlockchain}\;\Varid{f}{}\<[E]%
 \\
 \>[B]{}\hsindent{9}{}\<[9]%
@@ -1359,12 +1425,6 @@ listMagic (Right (b,(c,d))) = ([(p1 b)] ++ c,[not (elem (p1 b) c)] ++ d) \commen
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{11}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{15}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{22}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\mbox{\commentbegin 
 data QTree a = Cell a Int Int 
