@@ -476,21 +476,21 @@ Para a matriz |bm| de exemplo, a quadtree correspondente |qt = bm2qt bm| é ilus
 \begin{subfigure}{0.5\textwidth}
 \centering
 \includegraphics[width=0.2\linewidth]{cp1718t_media/person2.png}
-\caption{Compresão de $2$ níveis.}
+\caption{Compressão de $2$ níveis.}
 \label{fig:person2}
 \end{subfigure}
 %
 \begin{subfigure}{0.5\textwidth}
 \centering
 \includegraphics[width=0.2\linewidth]{cp1718t_media/person3.png}
-\caption{Compresão de $3$ níveis.}
+\caption{Compressão de $3$ níveis.}
 \label{fig:person3}
 \end{subfigure}
 %
 \begin{subfigure}{0.5\textwidth}
 \centering
 \includegraphics[width=0.2\linewidth]{cp1718t_media/person4.png}
-\caption{Compresão de $4$ níveis.}
+\caption{Compressão de $4$ níveis.}
 \label{fig:person4}
 \end{subfigure}
 %
@@ -975,7 +975,7 @@ outras funções auxiliares que sejam necessárias.
 
 
 
-Sabendo o tipo da nossa estrutura podemos verificar que este ou contém um Block, denoinado Bc , ou contém um tuplo com um Block e um BlockChain, sendo o tuplo denominado Bcs. Dessa maneira, dado um input, este será de um tipo ou do outro.
+Sabendo o tipo da nossa estrutura podemos verificar que este ou contém um Block, denominado Bc , ou contém um tuplo com um Block e um BlockChain, sendo o tuplo denominado Bcs. Dessa maneira, dado um input, este será de um tipo ou do outro.
 
 \begin{code}
 inBlockchain = either Bc Bcs
@@ -1139,7 +1139,6 @@ No caso da compress é criada uma função auxiliar cataQTree' que permite fazer
 A função geradora recorre a p2p para fazer a verificação. No caso de se verificar que o nivel é menor ou igual a 0, mantemos a estrutura igual, no caso de ser maior realizamos o prune. A função prune permite depois criar as novas cell com a informação das anteriores.
 
 \begin{code}
---ARRANJAR SE HOUVER TEMPO 
 -- Criar um cata que faça a subtração do valor de k, para poder descer até onde se quer manter a arvore igual, depois disso fazer a prune da qtree, juntando as cells de maneira correspondente
 compressQTree k qt = cataQTree' f (depthQTree qt - k) qt
     where f k = p2p (id, pruneQTree) (k <= 0) . inQTree
@@ -1239,28 +1238,44 @@ instance Bifunctor FTree where
 generatePTree = anaFTree (f)
   where f a = if a == 0 then  Right(1 + (sqrt (2) / 2)^ a) else Left((sqrt (2) / 2)^ a , (a-1 , a-1))
 -}
-generatePTree = undefined
+
+\end{code}
+
+De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesma como argumento é necessário aplicar a função \textbf{outNat} para gerar um \emph{Either} que será o argumento de um anamorfismo aplicado à ordem recebida. Sendo assim, a função g devolve, também, um \emph{Either}, pois é o tipo da nossa \emph{Ftree}. Como sabemos que uma \emph{Unit} corresponde ao maior quadrado que detém lado igual a 1, o lado esquerdo da soma corresponde ao Float 1.0. Ao lado direito queremos multiplicar $sqrt(2)/2$ elevado à ordem + 1 . 
+
+\begin{code}
+generatePTree =  anaFTree(g . outNat)
+      where g = const (1.0) -|- (split (((sqrt(2)/2) ^) . succ) (split id id))
+
+
 drawPTree = undefined
 \end{code}
 
 \subsection*{Problema 5}
 
+A função singleton, dada uma cor cria um Bag com um berlinde dessa mesma cor. Para isso, foi aplicado um split de maneira a ser criado o tuplo (cor, número de berlindes dessa cor). De seguida, é aplicado o singl a esse resultado para criar uma lista com o tuplo, após isso basta aplicar o construtor do Bag.
+
 \begin{code}
 -- Dada uma cor constroi um bag com um berlinde dessa cor 
 singletonbag = B . singl . (split id (const(1)))
 
+\end{code}
+
+Para a multiplicação de Bags é necessário o desdobramento do tipo recebido pela \textbf{muB} (\emph{Bag (Bag (Bag Marble))}) de maneira a ser obtido apenas uma lista do tipo [(Bag a, Int)] através da aplicação da função \textbf{unB} a todos os tuplos da lista. Seguidamente é, ainda, necessário uma nova aplicação da função \textbf{unB} para ficar com o tipo desejado. Assim, conseguimos efetuar a multiplicação do inteiro por todos os inteiros de todos os Bags (caso existam) através de um \textbf{map}. No final, de maneira a ser devolvido novamente um \emph{Bag a}, é preciso concatenar a lista de listas devolvida pelo map e aplicar o construtor do Bag.
+
+\begin{code}
 -- Multiplicação do monade
 muB = B . concat . (map (f) . unB . fmap unB)
   where f (a,b) = map (id><(*b)) a
+\end{code}
 
-dist = undefined
+Como é referido no enunciado, um exemplo de uma Distribuição é dada por \emph{d1 = D [(’A’, 0.02),(’B’, 0.12),(’C’, 0.29),(’D’, 0.35),(’E’, 0.22)]}. Logo, a um \emph{bagOfMarbles} é aplicado uma \emph{unB} de maneira a ser retirada apenas a lista de tuplos que constitui um Bag, de seguida efetuamos um somatório das quantidades de berlindes de cada cor e geramos um tuplo ([a,Int], Total de berlindes). Agora, a cada elemento da lista, através de um \textbf{map} é dividido o número total de berlindes pelo número de berlindes de cada cor e gerados os tuplos constituintes de uma distribuição.
 
-{-
---dist :: B[(a,Int)] -> [(a,Float)] 
+
+\begin{code}
+ 
 dist = D . f . split id (sum . map(snd)) . unB
-  where f (a,b) = map (\(c,d) -> (c >< (fromIntegral d /fromIntegral b))) a
--}
-
+  where f (a,b) = map (\ (c,d) -> (c, toFloat d / toFloat b)) a
 \end{code}
 
 \section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
