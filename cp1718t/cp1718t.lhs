@@ -975,24 +975,33 @@ outras funções auxiliares que sejam necessárias.
 
 
 
+Sabendo o tipo da nossa estrutura podemos verificar que este ou contém um Block, denoinado Bc , ou contém um tuplo com um Block e um BlockChain, sendo o tuplo denominado Bcs. Dessa maneira, dado um input, este será de um tipo ou do outro.
+
 \begin{code}
 inBlockchain = either Bc Bcs
 \end{code}
 
+No caso do out queremos realizar a operação contrária, ou seja, criar apartir de uma BlockChain, um tipo que tanto pode ser um Bc ou um Bcs. Assim, queremos aplicar à nossa BlockChain a projeção à esquerda no caso desta ser um Bc ou a projeção à direita no caso contrário.
 
 \begin{code}
 outBlockchain (Bc bc) =  i1 (bc)
 outBlockchain (Bcs (bc,a)) = i2 (bc,a)
 \end{code}
 
+Ao defenir a função rec estamos a defenir a função que trabalha sobre a soma que temos presente. Sendo dada uma função de transformação, esta será aplicada à parte do tipo que contem a informação do próximo elemento, neste caso sendo o BlockChain, presente no tuplo Bcs. Como verificado antes, temos um tipo que pode ser de dois tipos diferentes, assim para transformar esta soma é aplicado o co-produto na mesma, tendo assim criada a probabilidade de ser cada um dos tipos da soma. No entanto no lado direito da soma, temos presente um tipo que é um tuplo entre o tipo Bc e o tipo Bcs. Para tal é aplicado o produto neste tipo que transformaria o nosso tuplo no tuplo desejado.
+
 \begin{code}
 recBlockchain f = id -|- id >< f
 \end{code}
+
+A função cata permite transformar um dado tipo de dados usando uma função que realiza esta tranformação. Essa função de transformação permite transformar uma dada soma num tipo de dados unico. Para poder propagar a função pelo tipo é usada a função rec definida anteriormente, no entanto, o tipo de dados recebido, BlockChain, não corresponde ao tipo reccebido pela nossa rec. Para poder ultrupassar este problema é aplicada a função out definida, obtendo assim o tipo de dados pretendidos, e só após a função rec. A função que será aplicada a cada elemento é a propria função cata tendo como função de transformação a anterior, para que a mesma seja aplicada a cada elemento. Tendo feita a recursividade, podemos aplicar a função de transformação ao elemento atual. 
 
 \begin{code}
 cataBlockchain f =  f . recBlockchain(cataBlockchain f). outBlockchain
 \end{code}
 
+
+A função ana pretende fazer o contrário, sendo a mesma aplicada inicialmente ao tipo uníco recebido, permitindo transformar o tipo recebido numa soma. Depois da mesma ser aplicada iriamos realizar a recursividade, da mesma maneira feita no cata, usando a propria função ana e a função de transformação. Para depois poder obter o tipo de dados pretendido, é realizada a função in, que permite transformar a nossa soma num tipo de dados concreto.
 
 \begin{code}
 anaBlockchain f = inBlockchain.recBlockchain ( anaBlockchain f) . f 
@@ -1002,14 +1011,22 @@ anaBlockchain f = inBlockchain.recBlockchain ( anaBlockchain f) . f
 hyloBlockchain f g = cataBlockchain f. anaBlockchain g 
 \end{code}
 
-\begin{code}
-get_transaction :: Either Block (Block,Transactions) -> Transactions
-get_transaction = either (p2.p2) (conc . ((p2.p2)><id))
-\end{code}
+De seguida é apresentada a defenição da função allTransactions, que permite obter a lista de Transações de uma dada blockchain. Para tal é aplicada a função cata à BlockChain sendo passada a função transformadora. Esta função é função de transformação da soma, sendo do primeiro lado aplicado a projeção 2, que obtem o tuplo (Time,Transactions) do block e após isso sendo a aplicada de novo a projeção 2 para se obter as Transactions. Do segundo lado da soma temos de aplicar a concatenação das Transactions de um elemento, sendo o mesmo obtido da mesma forma, com as Transcations já obtidas.   
+
+
+DIAGRAMA
 
 \begin{code}
 allTransactions = (cataBlockchain get_transaction)
+  where get_transaction = either (p2.p2) (conc . ((p2.p2)><id))
 \end{code}
+
+Na função ledger pretendemos obter o Value de Cada Entity segundo uma dada BlockChain. Para tal é aplicada a função allTransactions, para obter a lista de todas as Transaction da BlockChain. Após, seria aplicada uma cata à lista de transactions, permitindo transformar os tuplos (Entity1,(Value,Entity2)) em ((Entity1,-Value),(Entity2,Value)). Sabendo que as listas não são de um tipo concreto, é usada a função either para identificar os dois casos. No caso de lista vazia, teremos também uma lista vazia. No outro caso teremos de transforma o nosso tuplo e concatenar o mesmo com os restantes. Para criar o nosso tuplo é aplicado um split ao mesmo, permitindo assim criar um tuplo de tuplos. A primeira função do split será um produto entre o id de Entity1 e o negate aplicado apos a projeção 2 do tuplo presente dentro do tuplo inicial. Este negate serve para guardar a informação do Entity 1, receptor da transação. No caso da segunda função do split é aplicada a projeção 2 do tuplo criado apartir do produto de id com swap. Este swap permite obter a informação de forma a ser guardada pelo ledger.
+\par
+Após o primeiro cata, é necessário criar a lista que guardaria os tuplos presentes em cada projeção dos tuplos da lista anterior. Para isto é aplicado outro cata à lista, que permitira transformar cada elemento de maneira a que a informação (Entity,Value) esteja presente na mesma. No caso de paragem novamente usado a lista vazia, e no outro caso como anteriormente temos de adicionar a informação de um elemento aos já presentes. Para isso é criada uma lista entre os dois elementos do tuplo sendo essa depois concatenada com a informação restante.
+Para poder agrupar a informação das várias Entity é usada a função col, permitindo agrupar os nossos tuplos como (Entity,[Value]).
+\par
+Após isso é apenas necessário adicionar a informação presente na lista de Value para obter o Ledger pretendido. Para isso é utilizada uma cata que transforma apenas a segunda parte do tuplo presente.
 
 
 \begin{code}
@@ -1018,13 +1035,12 @@ ledger = (cataList h).col.(cataList g).(cataList f).allTransactions
         g = either nil (conc .(conc . ((singl >< singl) )><id))
         h = either nil (cons .((id>< sum)><id))
 \end{code}
+
+
+Para verificar a validade dos Magic Numbers é necessário primeiramente obter uma lista de todos os Magic Numbers. Para isso é aplicada uma cata à BlockChain, que transformaria o primeiro elemento da soma num Magic Number e no segundo adicionava a sua informação à lista já presente. Após isso, duplicavamos a lista obtida, tendo um tuplo com a mesma lista. Depois disso, aplicavamos o produto ao tuplo, tendo de um lado o tamanho da lista e o outro o tamanho da lista depois de remover os repetidos de uma lista. Apos isso, comparavamos os dois elementos do tuplo, usando a função uncurry (==)
+
+
 \begin{code}
-
-
-{-listMagic (Left b) = ([(p1 b)],[True])
-listMagic (Right (b,(c,d))) = ([(p1 b)] ++ c,[not (elem (p1 b) c)] ++ d)
--}
-
 isValidMagicNr = uncurry (==). (length>< (length.nub)) . dup . cataBlockchain f
         where f = either (singl.p1) (cons.(p1><id)) 
 
@@ -1049,6 +1065,7 @@ hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, 
 -}
 
 
+
 inQTree (Left (a,(b,c))) = Cell a b c
 inQTree (Right (a,(b,(c,d)))) = Block a b c d
 \end{code}
@@ -1068,45 +1085,81 @@ recQTree f = baseQTree id f
 
 \begin{code}
 cataQTree f = f . recQTree(cataQTree f).outQTree
-anaQTree f =  inQTree . recQTree(anaQTree f).f
-hyloQTree f g= cataQTree f . anaQTree g
+\end{code}
 
+\begin{code}
+anaQTree f =  inQTree . recQTree(anaQTree f).f
+\end{code}
+
+\begin{code}
+hyloQTree f g= cataQTree f . anaQTree g
+\end{code}
+
+\begin{code}
 instance Functor QTree where
     fmap gen = cataQTree (inQTree. baseQTree gen id)
+\end{code}
 
 
+O rotate pretende rodar a Qtree existente em 90 º graus. Para isso é necessário alterar o tamanho presente nas Cell.s
+Para realizar o rotate é aplicada uma cata à Qtree, em que a depois de aplicada uma função f é aplicada a in da Qtree, para poder obter de novo Qtree. Esta função f é definida como uma soma sendo que do primeiro lado seria aplicado o produto entre id e swap, e do segundo lado teriamos de realizar um split para poder transformar o tuplo presente. Do primeiro lado iriamos colocar a projeção 1 após a projeção 2 após a projeção 2. Do segundo lado teriamos de realizar um novo split, para poder criar um tuplo neste local. Este tuplo seria criado com a projeção 1 em conjunto com um novo split. Este seria formado pela projeção 2 após a projeção 2 após a projeção 2 e pela projeção 1 após a projeção 2. Isto é necessário para criar o tuplo com as Qtree presentes no Block.
+
+\begin{code}
 rotateQTree = cataQTree (inQTree.f) -- inQTree para converter o either do cata para Qtree
   where f = g -|- h  -- Co-produto para poder criar um either no fim
         g = id >< swap
         h = split (p1.p2.p2) (s1)
         s1 = split (p1) (s2)
         s2 = split (p2.p2.p2) (p1.p2)
+\end{code}
 
+
+No caso da scale é necessário multiplicar o tamanho dado pelo tamanho presente em cada Cell.
+Para isso é usada a função ana. Esta permite que seja criada uma QTree dada uma função de geração de um tipo C, dado como input.
+Esta função de geração neste caso transforma a QTree usando a função out e aplica-lhe uma função f. Esta função f é defenida pela soma entre uma função g e a identidade, visto apenas querermos alterar a informação nas Cell. Esta função g é defenida como um produto entre a indentidade e um produto cujas funções são a multiplicação do Integer do Cell pelo Scale dado
+
+\begin{code}
 
 scaleQTree i = anaQTree (f . outQTree) -- Out para converter a Qtree em either para a  função ana
   where f = g -|- id
         g = id >< ((i*) >< (i*))
 
+\end{code}
 
+Na função invert queremos apenas alterar a informação presente no tipo a da Cell. Para tal é usada o funtor defenido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
+
+\begin{code}
 --USAMOS A PixelRGBA8 porque é o monade que é guardado no a da QTree
 invertQTree = fmap invert -- FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS
   where invert (PixelRGBA8 r g b a) = PixelRGBA8 (255-r) (255-g) (255-b) (a) 
+\end{code}
 
 
+No caso da compress é criada uma função auxiliar cataQTree' que permite fazer a decrementação do valor passado à cata.
+A função gerada 
+
+\begin{code}
 --ARRANJAR SE HOUVER TEMPO 
 -- Criar um cata que faça a subtração do valor de k, para poder descer até onde se quer manter a arvore igual, depois disso fazer a prune da qtree, juntando as cells de maneira correspondente
 compressQTree k qt = cataQTree' f (depthQTree qt - k) qt
     where f k = p2p (id, pruneQTree) (k <= 0) . inQTree
           cataQTree' f k = (f k) . recQTree (cataQTree' f (k-1)) . outQTree
+\end{code}
 
 
-
+\begin{code}
 pruneQTree = cataQTree (uncell . assocl . f)
     where f = either id (split (colorQTree.p1) (addSizes.getSizes))
           uncell = uncurry $ uncurry Cell
           addSizes ((x1,y1), (x2,y2)) = (x1+x2, y1+y2)
           getSizes = sizeQTree >< (sizeQTree.p2.p2)
           colorQTree = cataQTree $ either p1 p1
+\end{code}
+
+
+
+
+\begin{code}
 
 convert :: QTree Bool -> Matrix Bool
 convert = cataQTree(f)
@@ -1116,8 +1169,6 @@ convert = cataQTree(f)
         line i j = ( (matrix 1 i true) <-> ( (matrix (j-2) 1 true) <|> ( ( matrix (j-2) (i-2) false) <|> ( matrix (j-2) 1 true) ))) <-> (matrix 1 i true) 
 
 outlineQTree f = convert .fmap f
-      
-
 \end{code}
 
 \subsection*{Problema 3}
@@ -1127,22 +1178,26 @@ outlineQTree f = convert .fmap f
 
 flatet :: ((Integer,Integer),(Integer,Integer)) -> (Integer,Integer,Integer,Integer)
 flatet ((a,b),(c,d)) = (a,b,c,d) 
+\end{code}
 
-
+\begin{code}
 unflatet :: (Integer, Integer, Integer, Integer) -> ((Integer,Integer),(Integer,Integer))
 unflatet (a,b,c,d) = ((a,b),(c,d))
+\end{code}
 
-
+\begin{code}
 base = flatet . split (f) (g)
   where f = split (one) (succ)
         g = split (one) (one)
+\end{code}
 
+
+\begin{code}
 --loop (a,b,c,d) = (a*b , b+1 , c*d, d+1 ) 
 loop = flatet . f .unflatet
     where f = split (g) (h)
           g = split (mul.p1) (succ.p2.p1)
           h = split (mul.p2) (succ.p2.p2)          
-
 \end{code}
 
 \subsection*{Problema 4}
