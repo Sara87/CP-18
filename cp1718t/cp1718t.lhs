@@ -1135,8 +1135,8 @@ invertQTree = fmap invert -- FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS
 \end{code}
 
 
-No caso da compress é criada uma função auxiliar cataQTree' que permite fazer a decrementação do valor passado à cata.
-A função gerada 
+No caso da compress é criada uma função auxiliar cataQTree' que permite fazer a decrementação do valor passado à cata, valor esse que depende da profundidade da Qtree e do valor passado.
+A função geradora recorre a p2p para fazer a verificação. No caso de se verificar que o nivel é menor ou igual a 0, mantemos a estrutura igual, no caso de ser maior realizamos o prune. A função prune permite depois criar as novas cell com a informação das anteriores.
 
 \begin{code}
 --ARRANJAR SE HOUVER TEMPO 
@@ -1253,10 +1253,13 @@ singletonbag = B . singl . (split id (const(1)))
 muB = B . concat . (map (f) . unB . fmap unB)
   where f (a,b) = map (id><(*b)) a
 
+dist = undefined
+
+{-
 --dist :: B[(a,Int)] -> [(a,Float)] 
 dist = D . f . split id (sum . map(snd)) . unB
   where f (a,b) = map (\(c,d) -> (c >< (fromIntegral d /fromIntegral b))) a
-
+-}
 
 \end{code}
 
