@@ -1246,11 +1246,18 @@ drawPTree = undefined
 \subsection*{Problema 5}
 
 \begin{code}
--- Não sei o que é
-singletonbag = undefined
--- MULTIPLICAÇÂO DO MONADE - FUNÇÃO MU
-muB = undefined
-dist = undefined
+-- Dada uma cor constroi um bag com um berlinde dessa cor 
+singletonbag = B . singl . (split id (const(1)))
+
+-- Multiplicação do monade
+muB = B . concat . (map (f) . unB . fmap unB)
+  where f (a,b) = map (id><(*b)) a
+
+--dist :: B[(a,Int)] -> [(a,Float)] 
+dist = D . f . split id (sum . map(snd)) . unB
+  where f (a,b) = map (\(c,d) -> (c >< (fromIntegral d /fromIntegral b))) a
+
+
 \end{code}
 
 \section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
