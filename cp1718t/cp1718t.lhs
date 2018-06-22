@@ -1049,22 +1049,10 @@ isValidMagicNr = uncurry (==). (length>< (length.nub)) . dup . cataBlockchain f
 
 \subsection*{Problema 2}
 
+Tal como definido anteriormente temos para o tipo de dados pedido as funções básicas que trabalham sobre o mesmo.
+Estas seguem a mesma linha de pensamento, fazendo adptações à estrutura presente agora.
+
 \begin{code}
-
-{-
-data QTree a = Cell a Int Int | Block (QTree a) (QTree a) (QTree a) (QTree a)
-  deriving (Eq,Show)
-  
-inQTree :: Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a))) -> QTree a
-outQTree :: QTree a -> Either (a, (Int, Int)) (QTree a, (QTree a, (QTree a, QTree a)))
-baseQTree :: (a1 -> b) -> (a2 -> d1) -> Either (a1, d2) (a2, (a2, (a2, a2))) -> Either (b, d2) (d1, (d1, (d1, d1)))
-recQTree :: (a -> d1) -> Either (b, d2) (a, (a, (a, a))) -> Either (b, d2) (d1, (d1, (d1, d1)))
-cataQTree :: (Either (b, (Int, Int)) (d, (d, (d, d))) -> d) -> QTree b -> d
-anaQTree :: (a1 -> Either (a2, (Int, Int)) (a1, (a1, (a1, a1)))) -> a1 -> QTree a2
-hyloQTree :: (Either (b, (Int, Int)) (c, (c, (c, c))) -> c) -> (a -> Either (b, (Int, Int)) (a, (a, (a, a)))) -> a -> c
--}
-
-
 
 inQTree (Left (a,(b,c))) = Cell a b c
 inQTree (Right (a,(b,(c,d)))) = Block a b c d
@@ -1074,6 +1062,9 @@ inQTree (Right (a,(b,(c,d)))) = Block a b c d
 outQTree (Cell a b c) = i1 (a,(b,c))
 outQTree (Block a b c d) = i2 (a,(b,(c,d)))
 \end{code}
+
+
+No caso da base deste tipo, são passadas duas funções, a função que é aplicada no tipo a da QTree e a funçao que será aplicada a cada uma das QTree presentes no block.
 
 \begin{code}
 baseQTree g h = (g >< id) -|- (h><(h >< (h >< h)))
@@ -1116,7 +1107,7 @@ rotateQTree = cataQTree (inQTree.f) -- inQTree para converter o either do cata p
 
 No caso da scale é necessário multiplicar o tamanho dado pelo tamanho presente em cada Cell.
 Para isso é usada a função ana. Esta permite que seja criada uma QTree dada uma função de geração de um tipo C, dado como input.
-Esta função de geração neste caso transforma a QTree usando a função out e aplica-lhe uma função f. Esta função f é defenida pela soma entre uma função g e a identidade, visto apenas querermos alterar a informação nas Cell. Esta função g é defenida como um produto entre a indentidade e um produto cujas funções são a multiplicação do Integer do Cell pelo Scale dado
+Esta função de geração neste caso transforma a QTree usando a função out e aplica-lhe uma função f. Esta função f é defenida pela soma entre uma função g e a identidade, visto apenas querermos alterar a informação nas Cell. Esta função g é defenida como um produto entre a indentidade e um produto cujas funções são a multiplicação do Integer do Cell pelo Scale dado.
 
 \begin{code}
 
@@ -1136,7 +1127,8 @@ invertQTree = fmap invert -- FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS
 
 
 No caso da compress é criada uma função auxiliar cataQTree' que permite fazer a decrementação do valor passado à cata, valor esse que depende da profundidade da Qtree e do valor passado.
-A função geradora recorre a p2p para fazer a verificação. No caso de se verificar que o nivel é menor ou igual a 0, mantemos a estrutura igual, no caso de ser maior realizamos o prune. A função prune permite depois criar as novas cell com a informação das anteriores.
+A função geradora recorre a p2p para fazer a verificação. No caso de se verificar que o nivel é menor ou igual a 0, mantemos a estrutura igual, no caso de ser maior realizamos o prune. A função prune permite depois criar as novas cell com a informação das anteriores. Isto é feito através de um cata, que permite transformar a QTree presente nesse momento num unica Cell, no caso de este não ser já um cell. Na função transformadora é aplicada a uncell, função que cria a Cell dado um tuplo, após ser aplicada a assocl, sendo esta aplicada após a função f, que realiza a transformação do either para um tipo pretendido. Nesta função é aplicado a identidade do lado esquerdo e do lado direito é realizado um split, para poder ter a criação de num novo tuplo. Tuplo esse que a primeira parte é criada apartir da função colorQTree - obtendo a cor - após realizar a projeção 1. No outro lado do tuplo seria adicionada a informação dos sizes da QTree a ser criada.
+
 
 \begin{code}
 --ARRANJAR SE HOUVER TEMPO 
@@ -1156,8 +1148,7 @@ pruneQTree = cataQTree (uncell . assocl . f)
           colorQTree = cataQTree $ either p1 p1
 \end{code}
 
-
-
+No caso da outline, o que pretendemos fazer é criar uma Matrix de Bool, dada uma QTree e a função de verificação. Visto que apenas é necessário alterar a informação presente nas folhas da QTree podemos usar a função fmap, que permite transformar o tipo presente nas folhas, num novo tipo. Passamos assim a função f, recebida ao fmap. Após isso é necessário converter a QTree Bool para Matrix Bool, criando a borda nos casos necessários. Para tal é usada a função convert, que recebe uma soma, de um lado trata de 
 
 \begin{code}
 
@@ -1205,21 +1196,6 @@ loop = flatet . f .unflatet
 
 \begin{code}
 
-{-
-data FTree a b = Unit b | Comp a (FTree a b) (FTree a b) deriving (Eq,Show)
-type PTree = FTree Square Square
-type Square = Float
-
-inFTree :: Either b (a, (FTree a b, FTree a b)) -> FTree a b
-outFTree :: FTree a1 a2 -> Either a2 (a1, (FTree a1 a2, FTree a1 a2))
-baseFTree :: (a1 -> b1) -> (a2 -> b2) -> (a3 -> d) -> Either a2 (a1, (a3, a3)) -> Either b2 (b1, (d, d))
-recFTree :: (a -> d) -> Either b1 (b2, (a, a)) -> Either b1 (b2, (d, d))
-cataFTree :: (Either b1 (b2, (d, d)) -> d) -> FTree b2 b1 -> d
-anaFTree :: (a1 -> Either b (a2, (a1, a1))) -> a1 -> FTree a2 b
-hyloFTree :: (Either b1 (b2, (c, c)) -> c) -> (a -> Either b1 (b2, (a, a))) -> a -> c
-
--}
-
 
 inFTree (Left b) = Unit b
 inFTree (Right (a,(b,c))) = Comp a b c
@@ -1235,10 +1211,7 @@ hyloFTree f g = cataFTree f . anaFTree g
 
 instance Bifunctor FTree where
     bimap f g = cataFTree ( inFTree . baseFTree f g id)
-{-
-generatePTree = anaFTree (f)
-  where f a = if a == 0 then  Right(1 + (sqrt (2) / 2)^ a) else Left((sqrt (2) / 2)^ a , (a-1 , a-1))
--}
+
 generatePTree = undefined
 drawPTree = undefined
 \end{code}
@@ -1254,12 +1227,6 @@ muB = B . concat . (map (f) . unB . fmap unB)
   where f (a,b) = map (id><(*b)) a
 
 dist = undefined
-
-{-
---dist :: B[(a,Int)] -> [(a,Float)] 
-dist = D . f . split id (sum . map(snd)) . unB
-  where f (a,b) = map (\(c,d) -> (c >< (fromIntegral d /fromIntegral b))) a
--}
 
 \end{code}
 
