@@ -1017,22 +1017,22 @@ hyloBlockchain f g = cataBlockchain f. anaBlockchain g
 
 De seguida é apresentada a defenição da função \emph{allTransactions}, que permite obter a \textbf{lista de Transações} de uma dada \emph{blockchain}. Para tal é aplicada a função \emph{cata} à \emph{BlockChain} sendo passada a função transformadora. Esta função é a função de transformação de uma soma, sendo do primeiro lado aplicado a projeção 2, que obtem o tuplo \emph{(Time,Transactions)} do block e após isso sendo a aplicada de novo a projeção 2 para se obter as \emph{Transactions}. Do segundo lado da soma temos de aplicar a concatenação das \emph{Transactions} de um elemento, sendo o mesmo obtido da mesma forma, com as \emph{Transcations} já obtidas.   
 
-
 \begin{eqnarray*}
 \xymatrix@@C=2cm{
-    |Nat0|
-           \ar[d]_-{|cataNat g|}
+    |Blockchain|
+           \ar[d]_-{|allTransactions|}
+           \ar[r]_-{|outBlockchain|}
 &
-    |1 + Nat0|
-           \ar[d]^-{|id + (cataNat g)|}
-           \ar[l]_-{|inNat|}
+    |Block + (Block >< Blockchain)|
+           \ar[d]^-{|id + id >< |\cata{(get_transaction)}}
 \\
-     |B|
+     |Transactions|
 &
-     |1 + B|
-           \ar[l]^-{|g|}
+     |Block + (Block >< Transactions)|
+           \ar[l]^-{|get_transaction|}
 }
 \end{eqnarray*}
+
 
 \begin{code}
 allTransactions = (cataBlockchain get_transaction)
@@ -1047,8 +1047,27 @@ Após o primeiro \emph{cata}, é necessário criar a lista que guardaria os tupl
 \par
 Após o segundo \emph{cata} é apenas necessário adicionar a informação presente na \emph{[Values])} para obter o \emph{Ledger} pretendido. Para isso é utilizada uma \emph{cata} que transforma apenas a segunda parte do tuplo presente.
 
-
-DIAGRAMA
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Blockchain|
+           \ar[d]_-{|ledger|}
+           \ar[r]^-{|allTransactions|}
+&
+    |Transactions|
+          \ar[r]^-{\cata{f}}
+&
+    |((Entity><Value)><(Entity><Value))*|
+          \ar[d]^-{\cata{g}}
+\\
+    |Ledger|
+&
+    |(Entity><Value*)*|
+          \ar[l]_-{\cata{h}}
+&
+    |(Entity><Value)*|
+          \ar[l]_-{collect}
+}
+\end{eqnarray*}
 
 \begin{code}
 ledger = (cataList h).col.(cataList g).(cataList f).allTransactions
