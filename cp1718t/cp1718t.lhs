@@ -1567,6 +1567,24 @@ drawPTree = undefined
 
 A função \emph{singleton}, dada uma cor cria um \emph{Bag} com um berlinde dessa mesma cor. Para isso, foi aplicado um \emph{split} de maneira a ser criado o tuplo \emph{(cor, número de berlindes dessa cor)}. De seguida, é aplicado o \emph{singl} a esse resultado para criar uma lista com o tuplo, após isso basta aplicar o construtor do \emph{Bag}.
 
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |a|
+          \ar[d]_-{|singletonbag|}
+          \ar[r]^-{|split id 1|}
+&
+    |(a,1)|
+           \ar[d]^-{|singl|}
+\\
+    |B [(a,Int)]|
+&
+    |[(a,Int)]|
+          \ar[l]^-{|B|}
+}
+\end{eqnarray*}
+
+
 \begin{code} 
 singletonbag = B . singl . (split id (const(1)))
 
@@ -1584,6 +1602,22 @@ muB = B . concat . (map (f) . unB . fmap unB)
 \subsubsection{dist}
 
 Como é referido no enunciado, um exemplo de uma \textbf{Distribuição} é dada por \emph{d1 = D [(’A’, 0.02),(’B’, 0.12),(’C’, 0.29),(’D’, 0.35),(’E’, 0.22)]}. Logo, a um \emph{bagOfMarbles} é aplicado uma \emph{unB} de maneira a ser retirada apenas a lista de tuplos que constitui um \emph{Bag}, de seguida efetuamos um somatório das quantidades de berlindes de cada cor e geramos um tuplo \emph{([a,Int], Total de berlindes)}. Agora, a cada elemento da lista, através de um \emph{map} é dividido o número total de berlindes pelo número de berlindes de cada cor e gerados os tuplos constituintes de uma distribuição.
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |B [(a,Int)]|
+          \ar[d]_-{|dist|}
+          \ar[r]^-{|unB|}
+&
+    |[(a,Int)]|
+           \ar[d]^-{|f . split id (sum. map(snd))|}
+\\
+    |D [(a,Float)]|
+&
+    |[(a,Float)]|
+          \ar[l]^-{|D|}
+}
+\end{eqnarray*}
 
 \begin{code}
  
