@@ -1449,8 +1449,21 @@ Após o segundo \emph{cata} é apenas necessário adicionar a informação prese
 
 Para verificar a validade dos \emph{Magic Numbers} é necessário primeiramente obter uma lista de todos os \emph{Magic Numbers}. Para isso é aplicada uma cata à \emph{BlockChain}, que transformaria o primeiro elemento da soma num \emph{Magic Number} e no segundo adicionava a sua informação à lista já presente. Após isso, duplicavamos a lista obtida, tendo um tuplo com a mesma lista. Depois disso, aplicavamos o produto ao tuplo, tendo de um lado o tamanho da lista e o outro o tamanho da lista depois de remover os repetidos de uma lista. Apos isso, comparavamos os dois elementos do tuplo, usando a função \textbf{uncurry (==)}
 
-
-DIAGRAMA
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Conid{MagicNumber}\mathbin{*}\times\Conid{MagicNumber}\mathbin{*}}
+           \ar[d]_-{\ensuremath{\length \times(\length \comp \Varid{nub})}}
+&
+    \ensuremath{\Conid{BlockChain}}
+          \ar[d]^-{\ensuremath{\Varid{isValidMagicNr}}}
+          \ar[l]_-{\ensuremath{\Varid{dup}\comp }\cata{f}}
+\\
+    \ensuremath{\Conid{Int}\times\Conid{Int}}
+          \ar[r]_-{\ensuremath{\uncurry{(\equiv )}}}
+&
+    \ensuremath{\Conid{Bool}}
+}
+\end{eqnarray*}
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1544,17 +1557,34 @@ No caso da base deste tipo, são passadas duas funções, a função que é apli
 O rotate pretende rodar a \emph{Qtree} existente em \textbf{90 graus}. Para isso é necessário alterar o tamanho presente nas \emph{Cell}.
 Para realizar o \emph{rotate} é aplicada um \emph{cata} à \emph{Qtree}, em que a depois de aplicada uma função \emph{f} é aplicada a \emph{in} da \emph{Qtree}, para poder obter de novo a \emph{Qtree}. Esta função \emph{f} é definida como uma soma sendo que do primeiro lado seria aplicado o produto entre \emph{id} e \emph{swap}, e do segundo lado teriamos de realizar um \emph{split} para poder transformar o tuplo presente. Do primeiro lado iriamos colocar a \emph{projeção 1} após a \emph{projeção 2} após a \emph{projeção 2}. Do segundo lado teriamos de realizar um novo \emph{split}, para poder criar um tuplo neste local. Este tuplo seria criado com a \emph{projeção 1} em conjunto com um novo \emph{split}. Este seria formado pela \emph{projeção 2} após a \emph{projeção 2} após a \emph{projeção 2} e pela \emph{projeção 1} após a \emph{projeção 2}. Isto é necessário para criar o tuplo com as \emph{Qtree} presentes no \emph{Block}.
 
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Conid{QTree}}
+           \ar[d]_-{\ensuremath{\Varid{rotaQTree}}}
+&
+    \ensuremath{\Conid{A}\mathbin{+}\Conid{QTree}\mathbin{\uparrow}\mathrm{4}}
+          \ar[d]^-{\ensuremath{\Varid{id}\mathbin{+}} \cata{in.(g+h)}}
+          \ar[l]^-{inQTree}
+\\
+    \ensuremath{\Conid{QTree}}
+&
+    \ensuremath{\Conid{A}\mathbin{+}\Conid{QTree}\mathbin{\uparrow}\mathrm{4}}
+          \ar[l]^-{in . f}     
+}
+\end{eqnarray*}
+
+
+
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{3}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{9}{@{}>{\hspre}l<{\hspost}@{}}%
-\column{22}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\Varid{rotateQTree}\mathrel{=}\Varid{cataQTree}\;(\Varid{inQTree}\comp \Varid{f})\mbox{\onelinecomment  inQTree para converter o either do cata para Qtree}{}\<[E]%
+\>[B]{}\Varid{rotateQTree}\mathrel{=}\Varid{cataQTree}\;(\Varid{inQTree}\comp \Varid{f}){}\<[E]%
 \\
 \>[B]{}\hsindent{3}{}\<[3]%
-\>[3]{}\mathbf{where}\;\Varid{f}\mathrel{=}\Varid{g}+\Varid{h}{}\<[22]%
-\>[22]{}\mbox{\onelinecomment  Co-produto para poder criar um either no fim}{}\<[E]%
+\>[3]{}\mathbf{where}\;\Varid{f}\mathrel{=}\Varid{g}+\Varid{h}{}\<[E]%
 \\
 \>[3]{}\hsindent{6}{}\<[9]%
 \>[9]{}\Varid{g}\mathrel{=}\Varid{id}\times\Varid{swap}{}\<[E]%
@@ -1575,7 +1605,25 @@ Para realizar o \emph{rotate} é aplicada um \emph{cata} à \emph{Qtree}, em que
 
 No caso da \emph{scale} é necessário multiplicar o tamanho dado pelo tamanho presente em cada \emph{Cell}.
 Para isso é usada a função \emph{ana}. Esta permite que seja criada uma \emph{QTree} dada uma função de geração de um tipo \emph{C}, dado como input.
-Esta função de geração neste caso transforma a \emph{QTree} usando a função \emph{out} e aplica-lhe uma função \emph{f}. Esta função \emph{f} é defenida pela \textbf{soma} entre uma função \emph{g} e a \emph{identidade}, visto apenas querermos alterar a informação nas \emph{Cell}. Esta função \emph{g} é defenida como um \textbf{produto} entre a \emph{identidade} e um \textbf{produto} cujas funções são a multiplicação do \emph{Integer} do \emph{Cell} pelo \emph{Scale} dado.
+Esta função de geração neste caso transforma a \emph{QTree} usando a função \emph{out} e aplica-lhe uma função \emph{f}. Esta função \emph{f} é defenida pela \textbf{soma} entre uma função \emph{g} e a \emph{identidade}, visto apenas querermos alterar a informação nas \emph{Cell}. Esta função \emph{g} é definida como um \textbf{produto} entre a \emph{identidade} e um \textbf{produto} cujas funções são a multiplicação do \emph{Integer} do \emph{Cell} pelo \emph{Scale} dado.
+
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Conid{QTree}}
+           \ar[r]^-{\ensuremath{\Varid{outQTree}}}
+&
+    \ensuremath{\Conid{A}\mathbin{+}\Conid{QTree}\mathbin{\uparrow}\mathrm{4}}
+\\
+    \ensuremath{\Conid{QTree}}
+          \ar[u]^-{\ensuremath{\Varid{scaleQTree}}}
+          \ar[r]_-{\ensuremath{\Varid{f}\comp \Varid{outQTree}}}
+&
+    \ensuremath{\Conid{A}\mathbin{+}\Conid{QTree}\mathbin{\uparrow}\mathrm{4}}
+          \ar[u]_-{\ensuremath{\Varid{id}\mathbin{+}}\ana{f.outQTree}}     
+}
+\end{eqnarray*}
+
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1595,7 +1643,25 @@ Esta função de geração neste caso transforma a \emph{QTree} usando a funçã
 
 \subsubsection{invertQTree}
 
-Na função \emph{invert} queremos apenas alterar a informação presente no tipo a da \emph{Cell}. Para tal é usada o funtor defenido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
+Na função \emph{invert} queremos apenas alterar a informação presente no tipo a da \emph{Cell}. Para tal é usado o funtor definido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
+
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Conid{QTree}}
+           \ar[d]_-{\ensuremath{\Varid{invert}}}
+&
+    \ensuremath{\Conid{F}\;\Conid{QTree}}
+           \ar[l]_-{\ensuremath{\Varid{inQTree}}}
+           \ar[d]^-{\ensuremath{\Conid{F}\;\Varid{invert}}}
+\\
+    \ensuremath{\Conid{QTree}}
+          \ar[r]_-{\ensuremath{\Varid{outQTree}}}
+&
+    \ensuremath{\Conid{QTree}}
+}
+\end{eqnarray*}
+
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1619,8 +1685,6 @@ A função geradora recorre à \emph{p2p} para fazer a verificação. No caso de
 \column{5}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{11}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\mbox{\onelinecomment  Criar um cata que faça a subtração do valor de k, para poder descer até onde se quer manter a arvore igual, depois disso fazer a prune da qtree, juntando as cells de maneira correspondente}{}\<[E]%
-\\
 \>[B]{}\Varid{compressQTree}\;\Varid{k}\;\Varid{qt}\mathrel{=}\Varid{cataQTree'}\;\Varid{f}\;(\Varid{depthQTree}\;\Varid{qt}\mathbin{-}\Varid{k})\;\Varid{qt}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
@@ -1658,12 +1722,14 @@ A função geradora recorre à \emph{p2p} para fazer a verificação. No caso de
 
 \subsubsection{outlineQTree}
 
-No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Bool}, dada uma \emph{QTree} e a função de verificação. Visto que apenas é necessário alterar a informação presente nas folhas da \emph{QTree} podemos usar a função \emph{fmap}, que permite transformar o tipo presente nas folhas, num novo tipo. Passamos assim a função \emph{f}, recebida ao \emph{fmap}. Após isso é necessário converter a \emph{QTree Bool} para \emph{Matrix Bool}, criando a \textbf{borda} nos casos necessários. Para tal é usada a função \emph{convert} que consiste num \emph{cata} que iria realizar no lado direito da \textbf{soma}, uma condição, que iria verificar se é possivel adicionar uma borda a uma dada \emph{Cell}, sabendo se esta tem mais de 3 pixeis de largura e altura (1 para cada lado da borda e o pixel do meio). Caso a condição seja verificada, é criada uma nova matrix com a informação da anterior, e no outro caso, temos a criação de uma \emph{Matrix} com a informação presente. A criação das \emph{Matrix} é feita usando as funções \emph{($<->$)} e \emph{($<$\textbar$>$)} que permitem criar a parte superior e inferior de uma \emph{Matrix} e a parte esquerda e direita de uma \emph{Matrix} respetivamente.
+No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Bool}, dada uma \emph{QTree} e a função de verificação. Visto que apenas é necessário alterar a informação presente nas folhas da \emph{QTree} podemos usar a função \emph{fmap}, que permite transformar o tipo presente nas folhas, num novo tipo. Passamos assim a função \emph{f}, recebida ao \emph{fmap}. Após isso é necessário converter a \emph{QTree Bool} para \emph{Matrix Bool}, criando a \textbf{borda} nos casos necessários. Para tal é usada a função \emph{convert} que consiste num \emph{cata} que iria realizar no lado direito da \textbf{soma}, uma condição, que iria verificar se é possivel adicionar uma borda a uma dada \emph{Cell}, sabendo se esta tem mais de 3 pixeis de largura e altura (1 para cada lado da borda e o pixel do meio). Caso a condição seja verificada, é criada uma nova matrix com a informação da anterior, e no outro caso, temos a criação de uma \emph{Matrix} com a informação presente. A criação das \emph{Matrix} é feita usando as funções \emph{($<$-$>$)} e \emph{($<$\textbar$>$)} que permitem criar a parte superior e inferior de uma \emph{Matrix} e a parte esquerda e direita de uma \emph{Matrix} respetivamente.
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{3}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{11}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{40}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
 \>[B]{}\Varid{convert}\mathbin{::}\Conid{QTree}\;\Conid{Bool}\to \Conid{Matrix}\;\Conid{Bool}{}\<[E]%
 \\
@@ -1679,7 +1745,13 @@ No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Boo
 \>[9]{}\Varid{h}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}(\Varid{a}{\,\updownarrow\,}\Varid{b}){\,\leftrightarrow\,}(\Varid{c}{\,\updownarrow\,}\Varid{d}){}\<[E]%
 \\
 \>[3]{}\hsindent{6}{}\<[9]%
-\>[9]{}\Varid{line}\;\Varid{i}\;\Varid{j}\mathrel{=}((matrix\;\mathrm{1}\;\Varid{i}\;\Varid{true}){\,\leftrightarrow\,}((matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;\mathrm{1}\;\Varid{true}){\,\updownarrow\,}((matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;(\Varid{i}\mathbin{-}\mathrm{2})\;\Varid{false}){\,\updownarrow\,}(matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;\mathrm{1}\;\Varid{true})))){\,\leftrightarrow\,}(matrix\;\mathrm{1}\;\Varid{i}\;\Varid{true}){}\<[E]%
+\>[9]{}\Varid{line}\;\Varid{i}\;\Varid{j}\mathrel{=}((matrix\;\mathrm{1}\;\Varid{i}\;\Varid{true}){\,\leftrightarrow\,}((matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;\mathrm{1}\;\Varid{true}){\,\updownarrow\,}((matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;(\Varid{i}\mathbin{-}\mathrm{2})\;\Varid{false}){}\<[E]%
+\\
+\>[9]{}\hsindent{31}{}\<[40]%
+\>[40]{}{\,\updownarrow\,}(matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;\mathrm{1}\;\Varid{true})))){}\<[E]%
+\\
+\>[9]{}\hsindent{2}{}\<[11]%
+\>[11]{}{\,\leftrightarrow\,}(matrix\;\mathrm{1}\;\Varid{i}\;\Varid{true}){}\<[E]%
 \\[\blanklineskip]%
 \>[B]{}\Varid{outlineQTree}\;\Varid{f}\mathrel{=}\Varid{convert}\comp \mathsf{fmap}\;\Varid{f}{}\<[E]%
 \ColumnHook
@@ -1882,8 +1954,6 @@ No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Boo
 \column{5}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{11}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\mbox{\onelinecomment loop (a,b,c,d) = (a*b , b+1 , c*d, d+1 ) }{}\<[E]%
-\\
 \>[B]{}\Varid{loop}\mathrel{=}\Varid{flatet}\comp \Varid{f}\comp \Varid{unflatet}{}\<[E]%
 \\
 \>[B]{}\hsindent{5}{}\<[5]%
@@ -1935,6 +2005,24 @@ No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Boo
 
 De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesma como argumento é necessário aplicar a função \emph{outNat} para gerar um \emph{Either} que será o argumento de um \emph{ana} aplicado à ordem recebida. Sendo assim, a função \emph{g} devolve, também, um \emph{Either}, pois é o tipo da nossa \emph{Ftree}. Como sabemos que uma \emph{Unit} corresponde ao maior quadrado que detém lado igual a 1, o lado esquerdo da \textbf{soma} corresponde ao \emph{Float 1.0}. Ao lado direito queremos multiplicar $sqrt(2)/2$ elevado à ordem + 1 . 
 
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Conid{PTree}}
+           \ar[r]^-{\ensuremath{\Varid{outFTree}}}
+&
+    \ensuremath{\mathit B\mathbin{+}(\Conid{A}\times\Conid{FTree})\mathbin{\uparrow}\mathrm{2}}
+\\
+    \ensuremath{\Conid{Int}}
+          \ar[u]^-{\ensuremath{\Varid{generatePTree}}}
+          \ar[r]_-{\ensuremath{\Varid{outNat}}}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\Conid{Int}}
+          \ar[u]_-{\cata{g}}
+}
+\end{eqnarray*}
+
+
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{7}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1967,8 +2055,6 @@ A função \emph{singleton}, dada uma cor cria um \emph{Bag} com um berlinde des
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\mbox{\onelinecomment  Dada uma cor constroi um bag com um berlinde dessa cor }{}\<[E]%
-\\
 \>[B]{}\Varid{singletonbag}\mathrel{=}\mathit B\comp \Varid{singl}\comp \conj{\Varid{id}}{\underline{(\mathrm{1})}}{}\<[E]%
 \ColumnHook
 \end{hscode}\resethooks
@@ -1981,8 +2067,6 @@ Para a multiplicação de \emph{Bags} é necessário o desdobramento do tipo rec
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{3}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\mbox{\onelinecomment  Multiplicação do monade}{}\<[E]%
-\\
 \>[B]{}\mu \mathrel{=}\mathit B\comp \Varid{concat}\comp (\map \;(\Varid{f})\comp \Varid{unB}\comp \mathsf{fmap}\;\Varid{unB}){}\<[E]%
 \\
 \>[B]{}\hsindent{3}{}\<[3]%

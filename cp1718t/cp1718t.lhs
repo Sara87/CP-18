@@ -1083,17 +1083,16 @@ Para verificar a validade dos \emph{Magic Numbers} é necessário primeiramente 
 \begin{eqnarray*}
 \xymatrix@@C=2cm{
     |MagicNumber* >< MagicNumber*|
-           \ar[d]_-{|length >< (length.nub|}
+           \ar[d]_-{|length >< (length.nub)|}
 &
     |BlockChain|
-          \ar[d]_-{|isValidMagicNr|}
-          \ar[l]^-{|dup.|\cata{f}}
+          \ar[d]^-{|isValidMagicNr|}
+          \ar[l]_-{|dup.|\cata{f}}
 \\
     |Int >< Int|
           \ar[r]_-{|uncurry (==)|}
 &
     |Bool|
-         
 }
 \end{eqnarray*}
 
@@ -1159,22 +1158,22 @@ Para realizar o \emph{rotate} é aplicada um \emph{cata} à \emph{Qtree}, em que
     |QTree|
            \ar[d]_-{|rotaQTree|}
 &
-    |A + QTree^4|
-          \ar[d]_-{|id +| \cata{in.(g+h)}}
+    |A + QTree ^4|
+          \ar[d]^-{|id +| \cata{in.(g+h)}}
           \ar[l]^-{inQTree}
 \\
     |QTree|
 &
     |A + QTree ^ 4|
-          \ar[l]_-{in . f}     
+          \ar[l]^-{in . f}     
 }
 \end{eqnarray*}
 
 
 
 \begin{code}
-rotateQTree = cataQTree (inQTree.f) -- inQTree para converter o either do cata para Qtree
-  where f = g -|- h  -- Co-produto para poder criar um either no fim
+rotateQTree = cataQTree (inQTree.f) 
+  where f = g -|- h
         g = id >< swap
         h = split (p1.p2.p2) (s1)
         s1 = split (p1) (s2)
@@ -1192,12 +1191,12 @@ Esta função de geração neste caso transforma a \emph{QTree} usando a funçã
 \begin{eqnarray*}
 \xymatrix@@C=2cm{
     |QTree|
-           \ar[r]_-{|outQTree|}
+           \ar[r]^-{|outQTree|}
 &
     |A + QTree^4|
 \\
     |QTree|
-          \ar[u]_-{|scaleQTree|}
+          \ar[u]^-{|scaleQTree|}
           \ar[r]_-{|f.outQTree|}
 &
     |A + QTree ^ 4|
@@ -1226,8 +1225,8 @@ Na função \emph{invert} queremos apenas alterar a informação presente no tip
            \ar[d]_-{|invert|}
 &
     |F QTree|
-           \ar[l]^-{|inQTree|}
-           \ar[d]_-{|F invert|}
+           \ar[l]_-{|inQTree|}
+           \ar[d]^-{|F invert|}
 \\
     |QTree|
           \ar[r]_-{|outQTree|}
@@ -1249,7 +1248,6 @@ A função geradora recorre à \emph{p2p} para fazer a verificação. No caso de
 
 
 \begin{code}
--- Criar um cata que faça a subtração do valor de k, para poder descer até onde se quer manter a arvore igual, depois disso fazer a prune da qtree, juntando as cells de maneira correspondente
 compressQTree k qt = cataQTree' f (depthQTree qt - k) qt
     where f k = p2p (id, pruneQTree) (k <= 0) . inQTree
           cataQTree' f k = (f k) . recQTree (cataQTree' f (k-1)) . outQTree
@@ -1267,7 +1265,7 @@ pruneQTree = cataQTree (uncell . assocl . f)
 
 \subsubsection{outlineQTree}
 
-No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Bool}, dada uma \emph{QTree} e a função de verificação. Visto que apenas é necessário alterar a informação presente nas folhas da \emph{QTree} podemos usar a função \emph{fmap}, que permite transformar o tipo presente nas folhas, num novo tipo. Passamos assim a função \emph{f}, recebida ao \emph{fmap}. Após isso é necessário converter a \emph{QTree Bool} para \emph{Matrix Bool}, criando a \textbf{borda} nos casos necessários. Para tal é usada a função \emph{convert} que consiste num \emph{cata} que iria realizar no lado direito da \textbf{soma}, uma condição, que iria verificar se é possivel adicionar uma borda a uma dada \emph{Cell}, sabendo se esta tem mais de 3 pixeis de largura e altura (1 para cada lado da borda e o pixel do meio). Caso a condição seja verificada, é criada uma nova matrix com a informação da anterior, e no outro caso, temos a criação de uma \emph{Matrix} com a informação presente. A criação das \emph{Matrix} é feita usando as funções \emph{($<->$)} e \emph{($<$\textbar$>$)} que permitem criar a parte superior e inferior de uma \emph{Matrix} e a parte esquerda e direita de uma \emph{Matrix} respetivamente.
+No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Bool}, dada uma \emph{QTree} e a função de verificação. Visto que apenas é necessário alterar a informação presente nas folhas da \emph{QTree} podemos usar a função \emph{fmap}, que permite transformar o tipo presente nas folhas, num novo tipo. Passamos assim a função \emph{f}, recebida ao \emph{fmap}. Após isso é necessário converter a \emph{QTree Bool} para \emph{Matrix Bool}, criando a \textbf{borda} nos casos necessários. Para tal é usada a função \emph{convert} que consiste num \emph{cata} que iria realizar no lado direito da \textbf{soma}, uma condição, que iria verificar se é possivel adicionar uma borda a uma dada \emph{Cell}, sabendo se esta tem mais de 3 pixeis de largura e altura (1 para cada lado da borda e o pixel do meio). Caso a condição seja verificada, é criada uma nova matrix com a informação da anterior, e no outro caso, temos a criação de uma \emph{Matrix} com a informação presente. A criação das \emph{Matrix} é feita usando as funções \emph{($<$-$>$)} e \emph{($<$\textbar$>$)} que permitem criar a parte superior e inferior de uma \emph{Matrix} e a parte esquerda e direita de uma \emph{Matrix} respetivamente.
 
 \begin{code}
 convert :: QTree Bool -> Matrix Bool
@@ -1275,7 +1273,9 @@ convert = cataQTree(f)
   where f = either g h 
         g (c,(i,j)) = if (c && (i >= 3) && (j >=3)) then line i j else matrix j i (const c) 
         h (a,(b,(c,d))) = ( a <|> b ) <-> (c <|> d)
-        line i j = ( (matrix 1 i true) <-> ( (matrix (j-2) 1 true) <|> ( ( matrix (j-2) (i-2) false) <|> ( matrix (j-2) 1 true) ))) <-> (matrix 1 i true) 
+        line i j = ( (matrix 1 i true) <-> ( (matrix (j-2) 1 true) <|> ( ( matrix (j-2) (i-2) false) 
+                                       <|> ( matrix (j-2) 1 true) ))) 
+          <-> (matrix 1 i true) 
 
 outlineQTree f = convert .fmap f
 \end{code}
@@ -1497,8 +1497,7 @@ base = flatet . split (f) (g)
 \end{code}
 
 
-\begin{code}
---loop (a,b,c,d) = (a*b , b+1 , c*d, d+1 ) 
+\begin{code} 
 loop = flatet . f .unflatet
     where f = split (g) (h)
           g = split (mul.p1) (succ.p2.p1)
@@ -1536,7 +1535,7 @@ De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesm
 \begin{eqnarray*}
 \xymatrix@@C=2cm{
     |PTree|
-           \ar[r]_-{|outFTree|}
+           \ar[r]^-{|outFTree|}
 &
     |B + (A >< FTree)^2|
 \\
@@ -1568,8 +1567,7 @@ drawPTree = undefined
 
 A função \emph{singleton}, dada uma cor cria um \emph{Bag} com um berlinde dessa mesma cor. Para isso, foi aplicado um \emph{split} de maneira a ser criado o tuplo \emph{(cor, número de berlindes dessa cor)}. De seguida, é aplicado o \emph{singl} a esse resultado para criar uma lista com o tuplo, após isso basta aplicar o construtor do \emph{Bag}.
 
-\begin{code}
--- Dada uma cor constroi um bag com um berlinde dessa cor 
+\begin{code} 
 singletonbag = B . singl . (split id (const(1)))
 
 \end{code}
@@ -1579,7 +1577,6 @@ singletonbag = B . singl . (split id (const(1)))
 Para a multiplicação de \emph{Bags} é necessário o desdobramento do tipo recebido pela \emph{muB} (\emph{Bag (Bag (Bag Marble))}) de maneira a ser obtido apenas uma lista do tipo \emph{[(Bag a, Int)]} através da aplicação da função \emph{unB} a todos os tuplos da lista. Seguidamente é, ainda, necessário uma nova aplicação da função \emph{unB} para ficar com o tipo desejado. Assim, conseguimos efetuar a multiplicação do inteiro por todos os inteiros de todos os \emph{Bags} (caso existam) através de um \emph{map}. No final, de maneira a ser devolvido novamente um \emph{Bag a}, é preciso concatenar a lista de listas devolvida pelo \emph{map} e aplicar o construtor do \emph{Bag}.
 
 \begin{code}
--- Multiplicação do monade
 muB = B . concat . (map (f) . unB . fmap unB)
   where f (a,b) = map (id><(*b)) a
 \end{code}
