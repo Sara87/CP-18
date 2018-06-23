@@ -1153,7 +1153,7 @@ rotateQTree = cataQTree (inQTree.f) -- inQTree para converter o either do cata p
 
 No caso da \emph{scale} é necessário multiplicar o tamanho dado pelo tamanho presente em cada \emph{Cell}.
 Para isso é usada a função \emph{ana}. Esta permite que seja criada uma \emph{QTree} dada uma função de geração de um tipo \emph{C}, dado como input.
-Esta função de geração neste caso transforma a \emph{QTree} usando a função \emph{out} e aplica-lhe uma função \emph{f}. Esta função \emph{f} é defenida pela \textbf{soma} entre uma função \emph{g} e a \emph{identidade}, visto apenas querermos alterar a informação nas \emph{Cell}. Esta função \emph{g} é defenida como um \textbf{produto} entre a \emph{identidade} e um \textbf{produto} cujas funções são a multiplicação do \emph{Integer} do \emph{Cell} pelo \emph{Scale} dado.
+Esta função de geração neste caso transforma a \emph{QTree} usando a função \emph{out} e aplica-lhe uma função \emph{f}. Esta função \emph{f} é defenida pela \textbf{soma} entre uma função \emph{g} e a \emph{identidade}, visto apenas querermos alterar a informação nas \emph{Cell}. Esta função \emph{g} é definida como um \textbf{produto} entre a \emph{identidade} e um \textbf{produto} cujas funções são a multiplicação do \emph{Integer} do \emph{Cell} pelo \emph{Scale} dado.
 
 \begin{code}
 
@@ -1166,7 +1166,7 @@ scaleQTree i = anaQTree (f . outQTree) -- Out para converter a Qtree em either p
 
 \subsubsection{invertQTree}
 
-Na função \emph{invert} queremos apenas alterar a informação presente no tipo a da \emph{Cell}. Para tal é usada o funtor defenido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
+Na função \emph{invert} queremos apenas alterar a informação presente no tipo a da \emph{Cell}. Para tal é usado o funtor definido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
 
 \begin{code}
 invertQTree = fmap invert
