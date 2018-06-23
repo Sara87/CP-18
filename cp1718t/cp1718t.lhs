@@ -1,5 +1,5 @@
-\documentclass[a4paper]{article}
-\usepackage{geometry}
+\documentclass{article}
+\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage{palatino}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
 \usepackage{graphicx}
@@ -1163,6 +1163,116 @@ outlineQTree f = convert .fmap f
 
 \subsection*{Problema 3}
 
+\textbf{Conversão l k :}
+\begin{eqnarray*}
+\start
+|lcbr(
+    l k 0 = k + 1
+  )(
+    l k (d + 1) = l k d + 1
+  )|
+\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
+
+|lcbr(
+    l k . zero = succ
+  )(
+    l k . succ = succ . l k
+  )|
+
+\just\equiv{ Eq -+ }
+  \more
+    |either (l k . zero) (l k . succ) = either succ (succ . l k)|
+
+\just\equiv{ Fusão -+ (esq), Absorção -+ (dir)}
+  \more
+    |l k . either (zero) (succ) = (either (succ) (succ)) . (id + lk)|
+
+\qed
+\end{eqnarray*}
+
+\textbf{Conversão de f k:}
+
+\begin{eqnarray*}
+\start
+        |lcbr(
+    f k 0 = 1
+  )(
+    f k (d + 1) = (d + k  + 1) * f k d
+  )|
+\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
+   |lcbr(
+    f k . (const 0) = (const 1)
+  )(
+    f k . succ = mul (split (f k) (l k))
+  )|
+\just\equiv{Eq-+ \{27\} x 2, Natural-id \{1\} x 2}
+\more
+|either(f k . 0) (f k . succ) = either(1 . id) (mul . split (l k) (f k))|
+
+\just\equiv{Fusão-+ \{20\}, Absorção-+ \{22\}}
+\more
+|f k . either (0) (succ) = either(1) (mul) . (id + split (lk) (fk))|
+
+\qed
+\end{eqnarray*}
+
+
+\textbf{Fokkinga:}
+
+\begin{eqnarray*}
+\start
+\just\equiv{Fokkinga \{50\}}
+    |split (f k) (l k) =|\cata{|split (either one mul) (either succ succ)|}
+\qed
+\end{eqnarray*}
+
+\textbf{Conversão g: }
+\begin{eqnarray*}
+\start
+ |lcbr(
+    g 0 = 1
+  )(
+    g (d + 1) = (d + 1) * g d
+  )|
+
+\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
+       |lcbr(
+    g . zero = one
+  )(
+    g . succ = mul . split s g
+  )|
+
+\just\equiv{ Eq-+ \{27\} }
+    |either (g . zero) (g . succ) = either one (mul . split s g)|
+
+
+\just\equiv{ }
+
+
+\qed
+\end{eqnarray*}
+
+
+\textbf{Conversão s: }
+\begin{eqnarray*}
+\start
+  |lcbr(
+    s 0 = 1
+  )(
+    s (d + 1) = (s d) + 1
+  )|
+
+\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
+ |lcbr(
+    s . zero = one
+  )(
+    s . succ = succ . s
+  )|
+
+\qed
+\end{eqnarray*}
+
+
 \begin{code}
 
 
@@ -1195,7 +1305,6 @@ loop = flatet . f .unflatet
 
 \begin{code}
 
-
 inFTree (Left b) = Unit b
 inFTree (Right (a,(b,c))) = Comp a b c
 
@@ -1218,7 +1327,6 @@ De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesm
 \begin{code}
 generatePTree =  anaFTree(g . outNat)
       where g = const (1.0) -|- (split (((sqrt(2)/2) ^) . succ) (split id id))
-
 
 drawPTree = undefined
 \end{code}

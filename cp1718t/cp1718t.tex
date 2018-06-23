@@ -1,5 +1,5 @@
-  \documentclass[a4paper]{article}
-\usepackage{geometry}
+\documentclass{article}
+\usepackage[a4paper,left=3cm,right=2cm,top=2.5cm,bottom=2.5cm]{geometry}
 \usepackage{palatino}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue]{hyperref}
 \usepackage{graphicx}
@@ -1423,8 +1423,457 @@ Para verificar a validade dos Magic Numbers é necessário primeiramente obter u
 
 \subsection*{Problema 2}
 
+Tal como definido anteriormente temos para o tipo de dados pedido as funções básicas que trabalham sobre o mesmo.
+Estas seguem a mesma linha de pensamento, fazendo adptações à estrutura presente agora.
+
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
-\>[B]{}\mbox{\commentbegin 
-data QTree a = Cell a Int Int 
+\>[B]{}\Varid{inQTree}\;(i_1\;(\Varid{a},(\Varid{b},\Varid{c})))\mathrel{=}\Conid{Cell}\;\Varid{a}\;\Varid{b}\;\Varid{c}{}\<[E]%
+\\
+\>[B]{}\Varid{inQTree}\;(i_2\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d}))))\mathrel{=}\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{outQTree}\;(\Conid{Cell}\;\Varid{a}\;\Varid{b}\;\Varid{c})\mathrel{=}i_1\;(\Varid{a},(\Varid{b},\Varid{c})){}\<[E]%
+\\
+\>[B]{}\Varid{outQTree}\;(\Conid{Block}\;\Varid{a}\;\Varid{b}\;\Varid{c}\;\Varid{d})\mathrel{=}i_2\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d}))){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+No caso da base deste tipo, são passadas duas funções, a função que é aplicada no tipo a da QTree e a funçao que será aplicada a cada uma das QTree presentes no block.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{baseQTree}\;\Varid{g}\;\Varid{h}\mathrel{=}(\Varid{g}\times\Varid{id})+(\Varid{h}\times(\Varid{h}\times(\Varid{h}\times\Varid{h}))){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{recQTree}\;\Varid{f}\mathrel{=}\Varid{baseQTree}\;\Varid{id}\;\Varid{f}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{cataQTree}\;\Varid{f}\mathrel{=}\Varid{f}\comp \Varid{recQTree}\;(\Varid{cataQTree}\;\Varid{f})\comp \Varid{outQTree}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{15}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{anaQTree}\;\Varid{f}\mathrel{=}{}\<[15]%
+\>[15]{}\Varid{inQTree}\comp \Varid{recQTree}\;(\Varid{anaQTree}\;\Varid{f})\comp \Varid{f}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{hyloQTree}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{cataQTree}\;\Varid{f}\comp \Varid{anaQTree}\;\Varid{g}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mathbf{instance}\;\Conid{Functor}\;\Conid{QTree}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mathsf{fmap}\;\Varid{gen}\mathrel{=}\Varid{cataQTree}\;(\Varid{inQTree}\comp \Varid{baseQTree}\;\Varid{gen}\;\Varid{id}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+O rotate pretende rodar a Qtree existente em 90 º graus. Para isso é necessário alterar o tamanho presente nas Cell.s
+Para realizar o rotate é aplicada uma cata à Qtree, em que a depois de aplicada uma função f é aplicada a in da Qtree, para poder obter de novo Qtree. Esta função f é definida como uma soma sendo que do primeiro lado seria aplicado o produto entre id e swap, e do segundo lado teriamos de realizar um split para poder transformar o tuplo presente. Do primeiro lado iriamos colocar a projeção 1 após a projeção 2 após a projeção 2. Do segundo lado teriamos de realizar um novo split, para poder criar um tuplo neste local. Este tuplo seria criado com a projeção 1 em conjunto com um novo split. Este seria formado pela projeção 2 após a projeção 2 após a projeção 2 e pela projeção 1 após a projeção 2. Isto é necessário para criar o tuplo com as Qtree presentes no Block.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{22}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{rotateQTree}\mathrel{=}\Varid{cataQTree}\;(\Varid{inQTree}\comp \Varid{f})\mbox{\onelinecomment  inQTree para converter o either do cata para Qtree}{}\<[E]%
+\\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{where}\;\Varid{f}\mathrel{=}\Varid{g}+\Varid{h}{}\<[22]%
+\>[22]{}\mbox{\onelinecomment  Co-produto para poder criar um either no fim}{}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{g}\mathrel{=}\Varid{id}\times\Varid{swap}{}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{h}\mathrel{=}\conj{\p1\comp \p2\comp \p2}{\Varid{s1}}{}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{s1}\mathrel{=}\conj{\p1}{\Varid{s2}}{}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{s2}\mathrel{=}\conj{\p2\comp \p2\comp \p2}{\p1\comp \p2}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+No caso da scale é necessário multiplicar o tamanho dado pelo tamanho presente em cada Cell.
+Para isso é usada a função ana. Esta permite que seja criada uma QTree dada uma função de geração de um tipo C, dado como input.
+Esta função de geração neste caso transforma a QTree usando a função out e aplica-lhe uma função f. Esta função f é defenida pela soma entre uma função g e a identidade, visto apenas querermos alterar a informação nas Cell. Esta função g é defenida como um produto entre a indentidade e um produto cujas funções são a multiplicação do Integer do Cell pelo Scale dado.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{scaleQTree}\;\Varid{i}\mathrel{=}\Varid{anaQTree}\;(\Varid{f}\comp \Varid{outQTree})\mbox{\onelinecomment  Out para converter a Qtree em either para a  função ana}{}\<[E]%
+\\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{where}\;\Varid{f}\mathrel{=}\Varid{g}+\Varid{id}{}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{g}\mathrel{=}\Varid{id}\times((\Varid{i}\mathbin{*})\times(\Varid{i}\mathbin{*})){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Na função invert queremos apenas alterar a informação presente no tipo a da Cell. Para tal é usada o funtor defenido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mbox{\onelinecomment USAMOS A PixelRGBA8 porque é o monade que é guardado no a da QTree}{}\<[E]%
+\\
+\>[B]{}\Varid{invertQTree}\mathrel{=}\mathsf{fmap}\;\Varid{invert}\mbox{\onelinecomment  FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS}{}\<[E]%
+\\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{where}\;\Varid{invert}\;(\Conid{PixelRGBA8}\;\Varid{r}\;\Varid{g}\;\Varid{b}\;\Varid{a})\mathrel{=}\Conid{PixelRGBA8}\;(\mathrm{255}\mathbin{-}\Varid{r})\;(\mathrm{255}\mathbin{-}\Varid{g})\;(\mathrm{255}\mathbin{-}\Varid{b})\;(\Varid{a}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+No caso da compress é criada uma função auxiliar cataQTree' que permite fazer a decrementação do valor passado à cata, valor esse que depende da profundidade da Qtree e do valor passado.
+A função geradora recorre a p2p para fazer a verificação. No caso de se verificar que o nivel é menor ou igual a 0, mantemos a estrutura igual, no caso de ser maior realizamos o prune. A função prune permite depois criar as novas cell com a informação das anteriores. Isto é feito através de um cata, que permite transformar a QTree presente nesse momento num unica Cell, no caso de este não ser já um cell. Na função transformadora é aplicada a uncell, função que cria a Cell dado um tuplo, após ser aplicada a assocl, sendo esta aplicada após a função f, que realiza a transformação do either para um tipo pretendido. Nesta função é aplicado a identidade do lado esquerdo e do lado direito é realizado um split, para poder ter a criação de num novo tuplo. Tuplo esse que a primeira parte é criada apartir da função colorQTree - obtendo a cor - após realizar a projeção 1. No outro lado do tuplo seria adicionada a informação dos sizes da QTree a ser criada.
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{11}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mbox{\onelinecomment  Criar um cata que faça a subtração do valor de k, para poder descer até onde se quer manter a arvore igual, depois disso fazer a prune da qtree, juntando as cells de maneira correspondente}{}\<[E]%
+\\
+\>[B]{}\Varid{compressQTree}\;\Varid{k}\;\Varid{qt}\mathrel{=}\Varid{cataQTree'}\;\Varid{f}\;(\Varid{depthQTree}\;\Varid{qt}\mathbin{-}\Varid{k})\;\Varid{qt}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mathbf{where}\;\Varid{f}\;\Varid{k}\mathrel{=}\Varid{p2p}\;(\Varid{id},\Varid{pruneQTree})\;(\Varid{k}\leq \mathrm{0})\comp \Varid{inQTree}{}\<[E]%
+\\
+\>[5]{}\hsindent{6}{}\<[11]%
+\>[11]{}\Varid{cataQTree'}\;\Varid{f}\;\Varid{k}\mathrel{=}(\Varid{f}\;\Varid{k})\comp \Varid{recQTree}\;(\Varid{cataQTree'}\;\Varid{f}\;(\Varid{k}\mathbin{-}\mathrm{1}))\comp \Varid{outQTree}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{11}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{pruneQTree}\mathrel{=}\Varid{cataQTree}\;(\Varid{uncell}\comp \Varid{assocl}\comp \Varid{f}){}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mathbf{where}\;\Varid{f}\mathrel{=}\alt{\Varid{id}}{\conj{\Varid{colorQTree}\comp \p1}{\Varid{addSizes}\comp \Varid{getSizes}}}{}\<[E]%
+\\
+\>[5]{}\hsindent{6}{}\<[11]%
+\>[11]{}\Varid{uncell}\mathrel{=}\uncurry{\cdot }\mathbin{\$}\uncurry{\Conid{Cell}}{}\<[E]%
+\\
+\>[5]{}\hsindent{6}{}\<[11]%
+\>[11]{}\Varid{addSizes}\;((\Varid{x1},\Varid{y1}),(\Varid{x2},\Varid{y2}))\mathrel{=}(\Varid{x1}\mathbin{+}\Varid{x2},\Varid{y1}\mathbin{+}\Varid{y2}){}\<[E]%
+\\
+\>[5]{}\hsindent{6}{}\<[11]%
+\>[11]{}\Varid{getSizes}\mathrel{=}\Varid{sizeQTree}\times(\Varid{sizeQTree}\comp \p2\comp \p2){}\<[E]%
+\\
+\>[5]{}\hsindent{6}{}\<[11]%
+\>[11]{}\Varid{colorQTree}\mathrel{=}\Varid{cataQTree}\mathbin{\$}\alt{\p1}{\p1}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+No caso da outline, o que pretendemos fazer é criar uma Matrix de Bool, dada uma QTree e a função de verificação. Visto que apenas é necessário alterar a informação presente nas folhas da QTree podemos usar a função fmap, que permite transformar o tipo presente nas folhas, num novo tipo. Passamos assim a função f, recebida ao fmap. Após isso é necessário converter a QTree Bool para Matrix Bool, criando a borda nos casos necessários. Para tal é usada a função convert, que recebe uma soma, de um lado trata de 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{convert}\mathbin{::}\Conid{QTree}\;\Conid{Bool}\to \Conid{Matrix}\;\Conid{Bool}{}\<[E]%
+\\
+\>[B]{}\Varid{convert}\mathrel{=}\Varid{cataQTree}\;(\Varid{f}){}\<[E]%
+\\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{where}\;\Varid{f}\mathrel{=}\alt{\Varid{g}}{\Varid{h}}{}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{g}\;(\Varid{c},(\Varid{i},\Varid{j}))\mathrel{=}\mathbf{if}\;(\Varid{c}\mathrel{\wedge}(\Varid{i}\geq \mathrm{3})\mathrel{\wedge}(\Varid{j}\geq \mathrm{3}))\;\mathbf{then}\;\Varid{line}\;\Varid{i}\;\Varid{j}\;\mathbf{else}\;matrix\;\Varid{j}\;\Varid{i}\;\underline{\Varid{c}}{}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{h}\;(\Varid{a},(\Varid{b},(\Varid{c},\Varid{d})))\mathrel{=}(\Varid{a}{\,\updownarrow\,}\Varid{b}){\,\leftrightarrow\,}(\Varid{c}{\,\updownarrow\,}\Varid{d}){}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{line}\;\Varid{i}\;\Varid{j}\mathrel{=}((matrix\;\mathrm{1}\;\Varid{i}\;\Varid{true}){\,\leftrightarrow\,}((matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;\mathrm{1}\;\Varid{true}){\,\updownarrow\,}((matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;(\Varid{i}\mathbin{-}\mathrm{2})\;\Varid{false}){\,\updownarrow\,}(matrix\;(\Varid{j}\mathbin{-}\mathrm{2})\;\mathrm{1}\;\Varid{true})))){\,\leftrightarrow\,}(matrix\;\mathrm{1}\;\Varid{i}\;\Varid{true}){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{outlineQTree}\;\Varid{f}\mathrel{=}\Varid{convert}\comp \mathsf{fmap}\;\Varid{f}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\subsection*{Problema 3}
+
+\textbf{Conversão de f k:}
+
+\begin{eqnarray*}
+\start
+        \ensuremath{\begin{lcbr}\Varid{f}\;\Varid{k}\;\mathrm{0}\mathrel{=}\mathrm{1}\\\Varid{f}\;\Varid{k}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}(\Varid{d}\mathbin{+}\Varid{k}\mathbin{+}\mathrm{1})\mathbin{*}\Varid{f}\;\Varid{k}\;\Varid{d}\end{lcbr}}
+\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
+   \ensuremath{\begin{lcbr}\Varid{f}\;\Varid{k}\comp \underline{\mathrm{0}}\mathrel{=}\underline{\mathrm{1}}\\\Varid{f}\;\Varid{k}\comp \succ \mathrel{=}\Varid{mul}\;\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\end{lcbr}}
+\just\equiv{Eq-+ \{27\} x 2, Natural-id \{1\} x 2}
+\more
+\ensuremath{\alt{\Varid{f}\;\Varid{k}\comp \mathrm{0}}{\Varid{f}\;\Varid{k}\comp \succ }\mathrel{=}\alt{\mathrm{1}\comp \Varid{id}}{\Varid{mul}\comp \conj{\Varid{l}\;\Varid{k}}{\Varid{f}\;\Varid{k}}}}
+
+\just\equiv{Fusão-+ \{20\}, Absorção-+ \{22\}}
+\more
+\ensuremath{\Varid{f}\;\Varid{k}\comp \alt{\mathrm{0}}{\succ }\mathrel{=}\alt{\mathrm{1}}{\Varid{mul}}\comp (\Varid{id}\mathbin{+}\conj{\Varid{lk}}{\Varid{fk}})}
+
+\qed
+\end{eqnarray*}
+
+\textbf{Conversão l k :}
+\begin{eqnarray*}
+\start
+\ensuremath{\begin{lcbr}\Varid{l}\;\Varid{k}\;\mathrm{0}\mathrel{=}\Varid{k}\mathbin{+}\mathrm{1}\\\Varid{l}\;\Varid{k}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}\Varid{l}\;\Varid{k}\;\Varid{d}\mathbin{+}\mathrm{1}\end{lcbr}}
+\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
+
+\ensuremath{\begin{lcbr}\Varid{l}\;\Varid{k}\comp \Varid{zero}\mathrel{=}\succ \\\Varid{l}\;\Varid{k}\comp \succ \mathrel{=}\succ \comp \Varid{l}\;\Varid{k}\end{lcbr}}
+
+\just\equiv{ Eq -+ }
+  \more
+    \ensuremath{\alt{\Varid{l}\;\Varid{k}\comp \Varid{zero}}{\Varid{l}\;\Varid{k}\comp \succ }\mathrel{=}\alt{\succ }{\succ \comp \Varid{l}\;\Varid{k}}}
+
+\just\equiv{ Fusão -+ (esq), Absorção -+ (dir)}
+  \more
+    \ensuremath{\Varid{l}\;\Varid{k}\comp \alt{\Varid{zero}}{\succ }\mathrel{=}\alt{\succ }{\succ }\comp (\Varid{id}\mathbin{+}\Varid{lk})}
+
+\qed
+\end{eqnarray*}
+
+\textbf{Fokkinga:}
+
+\begin{eqnarray*}
+\start
+\just\equiv{Fokkinga \{50\}}
+    \ensuremath{\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\mathrel{=}}\cata{\ensuremath{\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\succ }{\succ }}}}
+\qed
+\end{eqnarray*}
+
+
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{flatet}\mathbin{::}((\Conid{Integer},\Conid{Integer}),(\Conid{Integer},\Conid{Integer}))\to (\Conid{Integer},\Conid{Integer},\Conid{Integer},\Conid{Integer}){}\<[E]%
+\\
+\>[B]{}\Varid{flatet}\;((\Varid{a},\Varid{b}),(\Varid{c},\Varid{d}))\mathrel{=}(\Varid{a},\Varid{b},\Varid{c},\Varid{d}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{unflatet}\mathbin{::}(\Conid{Integer},\Conid{Integer},\Conid{Integer},\Conid{Integer})\to ((\Conid{Integer},\Conid{Integer}),(\Conid{Integer},\Conid{Integer})){}\<[E]%
+\\
+\>[B]{}\Varid{unflatet}\;(\Varid{a},\Varid{b},\Varid{c},\Varid{d})\mathrel{=}((\Varid{a},\Varid{b}),(\Varid{c},\Varid{d})){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{9}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{base}\mathrel{=}\Varid{flatet}\comp \conj{\Varid{f}}{\Varid{g}}{}\<[E]%
+\\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{where}\;\Varid{f}\mathrel{=}\conj{\Varid{one}}{\succ }{}\<[E]%
+\\
+\>[3]{}\hsindent{6}{}\<[9]%
+\>[9]{}\Varid{g}\mathrel{=}\conj{\Varid{one}}{\Varid{one}}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{11}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mbox{\onelinecomment loop (a,b,c,d) = (a*b , b+1 , c*d, d+1 ) }{}\<[E]%
+\\
+\>[B]{}\Varid{loop}\mathrel{=}\Varid{flatet}\comp \Varid{f}\comp \Varid{unflatet}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\mathbf{where}\;\Varid{f}\mathrel{=}\conj{\Varid{g}}{\Varid{h}}{}\<[E]%
+\\
+\>[5]{}\hsindent{6}{}\<[11]%
+\>[11]{}\Varid{g}\mathrel{=}\conj{\Varid{mul}\comp \p1}{\succ \comp \p2\comp \p1}{}\<[E]%
+\\
+\>[5]{}\hsindent{6}{}\<[11]%
+\>[11]{}\Varid{h}\mathrel{=}\conj{\Varid{mul}\comp \p2}{\succ \comp \p2\comp \p2}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\subsection*{Problema 4}
+
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{5}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{inFTree}\;(i_1\;\Varid{b})\mathrel{=}\Conid{Unit}\;\Varid{b}{}\<[E]%
+\\
+\>[B]{}\Varid{inFTree}\;(i_2\;(\Varid{a},(\Varid{b},\Varid{c})))\mathrel{=}\Conid{Comp}\;\Varid{a}\;\Varid{b}\;\Varid{c}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{outFTree}\;(\Conid{Unit}\;\Varid{b})\mathrel{=}i_1\;\Varid{b}{}\<[E]%
+\\
+\>[B]{}\Varid{outFTree}\;(\Conid{Comp}\;\Varid{a}\;\Varid{b}\;\Varid{c})\mathrel{=}i_2\;(\Varid{a},(\Varid{b},\Varid{c})){}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{baseFTree}\;\Varid{f}\;\Varid{g}\;\Varid{h}\mathrel{=}\Varid{g}+(\Varid{f}\times(\Varid{h}\times\Varid{h})){}\<[E]%
+\\
+\>[B]{}\Varid{recFTree}\;\Varid{f}\mathrel{=}\Varid{baseFTree}\;\Varid{id}\;\Varid{id}\;\Varid{f}{}\<[E]%
+\\
+\>[B]{}\Varid{cataFTree}\;\Varid{f}\mathrel{=}\Varid{f}\comp \Varid{recFTree}\;(\Varid{cataFTree}\;\Varid{f})\comp \Varid{outFTree}{}\<[E]%
+\\
+\>[B]{}\Varid{anaFTree}\;\Varid{f}\mathrel{=}\Varid{inFTree}\comp \Varid{recFTree}\;(\Varid{anaFTree}\;\Varid{f})\comp \Varid{f}{}\<[E]%
+\\
+\>[B]{}\Varid{hyloFTree}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{cataFTree}\;\Varid{f}\comp \Varid{anaFTree}\;\Varid{g}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\mathbf{instance}\;\Conid{Bifunctor}\;\Conid{FTree}\;\mathbf{where}{}\<[E]%
+\\
+\>[B]{}\hsindent{5}{}\<[5]%
+\>[5]{}\Varid{bimap}\;\Varid{f}\;\Varid{g}\mathrel{=}\Varid{cataFTree}\;(\Varid{inFTree}\comp \Varid{baseFTree}\;\Varid{f}\;\Varid{g}\;\Varid{id}){}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+
+De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesma como argumento é necessário aplicar a função \textbf{outNat} para gerar um \emph{Either} que será o argumento de um anamorfismo aplicado à ordem recebida. Sendo assim, a função g devolve, também, um \emph{Either}, pois é o tipo da nossa \emph{Ftree}. Como sabemos que uma \emph{Unit} corresponde ao maior quadrado que detém lado igual a 1, o lado esquerdo da soma corresponde ao Float 1.0. Ao lado direito queremos multiplicar $sqrt(2)/2$ elevado à ordem + 1 . 
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{7}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{18}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{generatePTree}\mathrel{=}{}\<[18]%
+\>[18]{}\Varid{anaFTree}\;(\Varid{g}\comp \Varid{outNat}){}\<[E]%
+\\
+\>[B]{}\hsindent{7}{}\<[7]%
+\>[7]{}\mathbf{where}\;\Varid{g}\mathrel{=}\underline{(\mathrm{1.0})}+\conj{((\Varid{sqrt}\;(\mathrm{2})\mathbin{/}\mathrm{2})\mathbin{\uparrow})\comp \succ }{\conj{\Varid{id}}{\Varid{id}}}{}\<[E]%
+\\[\blanklineskip]%
+\>[B]{}\Varid{drawPTree}\mathrel{=}\bot {}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\subsection*{Problema 5}
+
+A função singleton, dada uma cor cria um Bag com um berlinde dessa mesma cor. Para isso, foi aplicado um split de maneira a ser criado o tuplo (cor, número de berlindes dessa cor). De seguida, é aplicado o singl a esse resultado para criar uma lista com o tuplo, após isso basta aplicar o construtor do Bag.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mbox{\onelinecomment  Dada uma cor constroi um bag com um berlinde dessa cor }{}\<[E]%
+\\
+\>[B]{}\Varid{singletonbag}\mathrel{=}\mathit B\comp \Varid{singl}\comp \conj{\Varid{id}}{\underline{(\mathrm{1})}}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Para a multiplicação de Bags é necessário o desdobramento do tipo recebido pela \textbf{muB} (\emph{Bag (Bag (Bag Marble))}) de maneira a ser obtido apenas uma lista do tipo [(Bag a, Int)] através da aplicação da função \textbf{unB} a todos os tuplos da lista. Seguidamente é, ainda, necessário uma nova aplicação da função \textbf{unB} para ficar com o tipo desejado. Assim, conseguimos efetuar a multiplicação do inteiro por todos os inteiros de todos os Bags (caso existam) através de um \textbf{map}. No final, de maneira a ser devolvido novamente um \emph{Bag a}, é preciso concatenar a lista de listas devolvida pelo map e aplicar o construtor do Bag.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\mbox{\onelinecomment  Multiplicação do monade}{}\<[E]%
+\\
+\>[B]{}\mu \mathrel{=}\mathit B\comp \Varid{concat}\comp (\map \;(\Varid{f})\comp \Varid{unB}\comp \mathsf{fmap}\;\Varid{unB}){}\<[E]%
+\\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{where}\;\Varid{f}\;(\Varid{a},\Varid{b})\mathrel{=}\map \;(\Varid{id}\times(\mathbin{*}\Varid{b}))\;\Varid{a}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+Como é referido no enunciado, um exemplo de uma Distribuição é dada por \emph{d1 = D [(’A’, 0.02),(’B’, 0.12),(’C’, 0.29),(’D’, 0.35),(’E’, 0.22)]}. Logo, a um \emph{bagOfMarbles} é aplicado uma \emph{unB} de maneira a ser retirada apenas a lista de tuplos que constitui um Bag, de seguida efetuamos um somatório das quantidades de berlindes de cada cor e geramos um tuplo ([a,Int], Total de berlindes). Agora, a cada elemento da lista, através de um \textbf{map} é dividido o número total de berlindes pelo número de berlindes de cada cor e gerados os tuplos constituintes de uma distribuição.
+
+\begin{hscode}\SaveRestoreHook
+\column{B}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{3}{@{}>{\hspre}l<{\hspost}@{}}%
+\column{E}{@{}>{\hspre}l<{\hspost}@{}}%
+\>[B]{}\Varid{dist}\mathrel{=}\Conid{D}\comp \Varid{f}\comp \conj{\Varid{id}}{\Varid{sum}\comp \map \;(\p2)}\comp \Varid{unB}{}\<[E]%
+\\
+\>[B]{}\hsindent{3}{}\<[3]%
+\>[3]{}\mathbf{where}\;\Varid{f}\;(\Varid{a},\Varid{b})\mathrel{=}\map \;(\lambda (\Varid{c},\Varid{d})\to (\Varid{c},\Varid{toFloat}\;\Varid{d}\mathbin{/}\Varid{toFloat}\;\Varid{b}))\;\Varid{a}{}\<[E]%
+\ColumnHook
+\end{hscode}\resethooks
+
+\section{Como exprimir cálculos e diagramas em LaTeX/lhs2tex}
+Estudar o texto fonte deste trabalho para obter o efeito:\footnote{Exemplos tirados de \cite{Ol18}.} 
+\begin{eqnarray*}
+\start
+	\ensuremath{\Varid{id}\mathrel{=}\conj{\Varid{f}}{\Varid{g}}}
+%
+\just\equiv{ universal property }
+%
+        \ensuremath{\begin{lcbr}\p1\comp \Varid{id}\mathrel{=}\Varid{f}\\\p2\comp \Varid{id}\mathrel{=}\Varid{g}\end{lcbr}}
+%
+\just\equiv{ identity }
+%
+        \ensuremath{\begin{lcbr}\p1\mathrel{=}\Varid{f}\\\p2\mathrel{=}\Varid{g}\end{lcbr}}
+\qed
+\end{eqnarray*}
+
+Os diagramas podem ser produzidos recorrendo à \emph{package} \LaTeX\ 
+\href{https://ctan.org/pkg/xymatrix}{xymatrix}, por exemplo: 
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\N_0}
+           \ar[d]_-{\ensuremath{\cata{\Varid{g}}}}
+&
+    \ensuremath{\mathrm{1}\mathbin{+}\N_0}
+           \ar[d]^{\ensuremath{\Varid{id}\mathbin{+}\cata{\Varid{g}}}}
+           \ar[l]_-{\ensuremath{\mathsf{in}}}
+\\
+     \ensuremath{\mathit B}
+&
+     \ensuremath{\mathrm{1}\mathbin{+}\mathit B}
+           \ar[l]^-{\ensuremath{\Varid{g}}}
+}
+\end{eqnarray*}
+
+%----------------- Fim do anexo com soluções dos alunos ------------------------%
+
+%----------------- Índice remissivo (exige makeindex) -------------------------%
+
+\printindex
+
+%----------------- Outras definições auxiliares -------------------------------------------%
+
+
+%----------------- Fim do documento -------------------------------------------%
+
+\end{document}
+
