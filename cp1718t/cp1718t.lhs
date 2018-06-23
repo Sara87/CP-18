@@ -973,61 +973,82 @@ outras funções auxiliares que sejam necessárias.
 
 \subsection*{Problema 1}
 
+\subsubsection{Definições iniciais}
 
-
-Sabendo o tipo da nossa estrutura podemos verificar que este ou contém um Block, denominado Bc , ou contém um tuplo com um Block e um BlockChain, sendo o tuplo denominado Bcs. Dessa maneira, dado um input, este será de um tipo ou do outro.
+Sabendo o tipo da nossa estrutura podemos verificar que este ou contém um \emph{Block}, denominado \emph{Bc} , ou contém um tuplo com um \emph{Block} e um \emph{BlockChain}, sendo o tuplo denominado \emph{Bcs}. Dessa maneira, dado um input, este será de um tipo ou do outro.
 
 \begin{code}
 inBlockchain = either Bc Bcs
 \end{code}
 
-No caso do out queremos realizar a operação contrária, ou seja, criar apartir de uma BlockChain, um tipo que tanto pode ser um Bc ou um Bcs. Assim, queremos aplicar à nossa BlockChain a projeção à esquerda no caso desta ser um Bc ou a projeção à direita no caso contrário.
+No caso do \emph{out} queremos realizar a operação contrária, ou seja, criar apartir de uma \emph{BlockChain}, um tipo que tanto pode ser um \emph{Bc} ou um \emph{Bcs}. Assim, queremos aplicar à nossa \emph{BlockChain} a projeção à esquerda no caso desta ser um \emph{Bc} ou a projeção à direita no caso contrário.
 
 \begin{code}
 outBlockchain (Bc bc) =  i1 (bc)
 outBlockchain (Bcs (bc,a)) = i2 (bc,a)
 \end{code}
 
-Ao defenir a função rec estamos a defenir a função que trabalha sobre a soma que temos presente. Sendo dada uma função de transformação, esta será aplicada à parte do tipo que contem a informação do próximo elemento, neste caso sendo o BlockChain, presente no tuplo Bcs. Como verificado antes, temos um tipo que pode ser de dois tipos diferentes, assim para transformar esta soma é aplicado o co-produto na mesma, tendo assim criada a probabilidade de ser cada um dos tipos da soma. No entanto no lado direito da soma, temos presente um tipo que é um tuplo entre o tipo Bc e o tipo Bcs. Para tal é aplicado o produto neste tipo que transformaria o nosso tuplo no tuplo desejado.
+Ao defenir a função \emph{rec} estamos a defenir a função que trabalha sobre a soma que temos presente. Sendo dada uma função de transformação, esta será aplicada à parte do tipo que contem a informação do próximo elemento, neste caso sendo o \emph{BlockChain}, presente no tuplo \emph{Bcs}. Como verificado antes, temos um tipo que pode ser de dois tipos diferentes, assim para transformar esta soma é aplicado o co-produto na mesma, tendo assim criada a probabilidade de ser cada um dos tipos da soma. No entanto no lado direito da soma, temos presente um tipo que é um tuplo entre o tipo \emph{Bc} e o tipo \emph{Bcs}. Para tal é aplicado o produto neste tipo que transformaria o nosso tuplo no tuplo desejado.
 
 \begin{code}
 recBlockchain f = id -|- id >< f
 \end{code}
 
-A função cata permite transformar um dado tipo de dados usando uma função que realiza esta tranformação. Essa função de transformação permite transformar uma dada soma num tipo de dados unico. Para poder propagar a função pelo tipo é usada a função rec definida anteriormente, no entanto, o tipo de dados recebido, BlockChain, não corresponde ao tipo reccebido pela nossa rec. Para poder ultrupassar este problema é aplicada a função out definida, obtendo assim o tipo de dados pretendidos, e só após a função rec. A função que será aplicada a cada elemento é a propria função cata tendo como função de transformação a anterior, para que a mesma seja aplicada a cada elemento. Tendo feita a recursividade, podemos aplicar a função de transformação ao elemento atual. 
+A função \emph{cata} permite transformar um dado tipo de dados usando uma função que realiza esta tranformação. Essa função de transformação permite transformar uma dada soma num tipo de dados único. Para poder propagar a função pelo tipo é usada a função \emph{rec} definida anteriormente, no entanto, o tipo de dados recebido, \emph{BlockChain}, não corresponde ao tipo recebido pela nossa \emph{rec}. Para poder ultrupassar este problema é aplicada a função \emph{out} definida, obtendo assim o tipo de dados pretendidos, e só após aplicamos a função \emph{rec}. A função que será aplicada a cada elemento é a propria função \emph{cata} tendo como função de transformação a anterior, para que a mesma seja aplicada a cada elemento. Tendo feita a recursividade, podemos aplicar a função de transformação ao elemento atual. 
 
 \begin{code}
 cataBlockchain f =  f . recBlockchain(cataBlockchain f). outBlockchain
 \end{code}
 
 
-A função ana pretende fazer o contrário, sendo a mesma aplicada inicialmente ao tipo uníco recebido, permitindo transformar o tipo recebido numa soma. Depois da mesma ser aplicada iriamos realizar a recursividade, da mesma maneira feita no cata, usando a propria função ana e a função de transformação. Para depois poder obter o tipo de dados pretendido, é realizada a função in, que permite transformar a nossa soma num tipo de dados concreto.
+A função \emph{ana} pretende fazer o contrário, sendo a mesma aplicada inicialmente ao tipo uníco recebido, permitindo transformar o tipo recebido numa soma. Depois da mesma ser aplicada iriamos realizar a recursividade, da mesma maneira feita no \emph{cata}, usando a propria função \emph{ana} e a função de transformação. Para depois poder obter o tipo de dados pretendido, é realizada a função \emph{in}, que permite transformar a nossa soma num tipo de dados concreto.
 
 \begin{code}
 anaBlockchain f = inBlockchain.recBlockchain ( anaBlockchain f) . f 
 \end{code}
 
+A função \emph{hylo} recebe duas funções, a primeira transformando um dado tipo de dados numa soma e a segunda transforma uma \emph{BlockChain} num dado tipo de dados. Assim para poder realizar o \emph{hylo} é aplicada inicialmente uma ana dada a segunda função e posteriormente um \emph{cata} dada a primeira função. 
+
 \begin{code}
 hyloBlockchain f g = cataBlockchain f. anaBlockchain g 
 \end{code}
 
-De seguida é apresentada a defenição da função allTransactions, que permite obter a lista de Transações de uma dada blockchain. Para tal é aplicada a função cata à BlockChain sendo passada a função transformadora. Esta função é função de transformação da soma, sendo do primeiro lado aplicado a projeção 2, que obtem o tuplo (Time,Transactions) do block e após isso sendo a aplicada de novo a projeção 2 para se obter as Transactions. Do segundo lado da soma temos de aplicar a concatenação das Transactions de um elemento, sendo o mesmo obtido da mesma forma, com as Transcations já obtidas.   
+\subsubsection{allTransactions}
+
+De seguida é apresentada a defenição da função \emph{allTransactions}, que permite obter a \textbf{lista de Transações} de uma dada \emph{blockchain}. Para tal é aplicada a função \emph{cata} à \emph{BlockChain} sendo passada a função transformadora. Esta função é a função de transformação de uma soma, sendo do primeiro lado aplicado a projeção 2, que obtem o tuplo \emph{(Time,Transactions)} do block e após isso sendo a aplicada de novo a projeção 2 para se obter as \emph{Transactions}. Do segundo lado da soma temos de aplicar a concatenação das \emph{Transactions} de um elemento, sendo o mesmo obtido da mesma forma, com as \emph{Transcations} já obtidas.   
 
 
-DIAGRAMA
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |Nat0|
+           \ar[d]_-{|cataNat g|}
+&
+    |1 + Nat0|
+           \ar[d]^-{|id + (cataNat g)|}
+           \ar[l]_-{|inNat|}
+\\
+     |B|
+&
+     |1 + B|
+           \ar[l]^-{|g|}
+}
+\end{eqnarray*}
 
 \begin{code}
 allTransactions = (cataBlockchain get_transaction)
   where get_transaction = either (p2.p2) (conc . ((p2.p2)><id))
 \end{code}
 
-Na função ledger pretendemos obter o Value de Cada Entity segundo uma dada BlockChain. Para tal é aplicada a função allTransactions, para obter a lista de todas as Transaction da BlockChain. Após, seria aplicada uma cata à lista de transactions, permitindo transformar os tuplos (Entity1,(Value,Entity2)) em ((Entity1,-Value),(Entity2,Value)). Sabendo que as listas não são de um tipo concreto, é usada a função either para identificar os dois casos. No caso de lista vazia, teremos também uma lista vazia. No outro caso teremos de transforma o nosso tuplo e concatenar o mesmo com os restantes. Para criar o nosso tuplo é aplicado um split ao mesmo, permitindo assim criar um tuplo de tuplos. A primeira função do split será um produto entre o id de Entity1 e o negate aplicado apos a projeção 2 do tuplo presente dentro do tuplo inicial. Este negate serve para guardar a informação do Entity 1, receptor da transação. No caso da segunda função do split é aplicada a projeção 2 do tuplo criado apartir do produto de id com swap. Este swap permite obter a informação de forma a ser guardada pelo ledger.
-\par
-Após o primeiro cata, é necessário criar a lista que guardaria os tuplos presentes em cada projeção dos tuplos da lista anterior. Para isto é aplicado outro cata à lista, que permitira transformar cada elemento de maneira a que a informação (Entity,Value) esteja presente na mesma. No caso de paragem novamente usado a lista vazia, e no outro caso como anteriormente temos de adicionar a informação de um elemento aos já presentes. Para isso é criada uma lista entre os dois elementos do tuplo sendo essa depois concatenada com a informação restante.
-Para poder agrupar a informação das várias Entity é usada a função col, permitindo agrupar os nossos tuplos como (Entity,[Value]).
-\par
-Após isso é apenas necessário adicionar a informação presente na lista de Value para obter o Ledger pretendido. Para isso é utilizada uma cata que transforma apenas a segunda parte do tuplo presente.
+\subsubsection{ledger}
 
+Na função \emph{ledger} pretendemos obter o \textbf{Value de Cada Entity} segundo uma dada \emph{BlockChain}. Para tal é aplicada a função \emph{allTransactions}, para obter a lista de todas as \emph{Transaction} da \emph{BlockChain}. Após, seria aplicada uma \emph{cata} às \emph{Transactions}, permitindo transformar os tuplos \emph{(Entity1,(Value,Entity2))} em \emph{((Entity1,-Value),(Entity2,Value))}. Sabendo que as listas não são de um tipo concreto, é usada a função \emph{either} para identificar os dois casos. No caso de lista vazia, teremos também uma lista vazia. No outro caso teremos de transforma o nosso tuplo e concatenar o mesmo com os restantes. Para criar o nosso tuplo é aplicado um \emph{split} ao mesmo, permitindo assim criar um tuplo de tuplos. A primeira função do \emph{split} será um \textbf{produto} entre o \emph{id de Entity1} e o \emph{negate} aplicado apos a \emph{projeção 2} do tuplo presente dentro do tuplo inicial. Este \emph{negate} permite guardar a informação do \emph{Entity 1}, receptor da transação. No caso da segunda função do \emph{split} é aplicada a \emph{projeção 2} do tuplo criado apartir do \textbf{produto} de \emph{id} com \emph{swap}. Este \emph{swap} permite obter a informação de forma a ser guardada pelo \emph{ledger}.
+\par
+Após o primeiro \emph{cata}, é necessário criar a lista que guardaria os tuplos presentes em cada projeção dos tuplos da lista anterior. Para isto é aplicado outro \emph{cata} à lista, que permitira transformar cada elemento de maneira a que a informação \emph{(Entity,Value)} esteja presente na mesma. No caso de paragem novamente usado a lista vazia, e no outro caso como anteriormente temos de adicionar a informação de um elemento aos já presentes. Para isso é criada uma lista entre os dois elementos do tuplo sendo essa depois concatenada com a informação restante. Para poder agrupar a informação das várias \emph{Entity} é usada a função \emph{col}, permitindo agrupar os nossos tuplos como \emph{(Entity,[Value])}.
+\par
+Após o segundo \emph{cata} é apenas necessário adicionar a informação presente na \emph{[Values])} para obter o \emph{Ledger} pretendido. Para isso é utilizada uma \emph{cata} que transforma apenas a segunda parte do tuplo presente.
+
+
+DIAGRAMA
 
 \begin{code}
 ledger = (cataList h).col.(cataList g).(cataList f).allTransactions
@@ -1036,14 +1057,16 @@ ledger = (cataList h).col.(cataList g).(cataList f).allTransactions
         h = either nil (cons .((id>< sum)><id))
 \end{code}
 
+\subsubsection{isValidMagicNr}
 
-Para verificar a validade dos Magic Numbers é necessário primeiramente obter uma lista de todos os Magic Numbers. Para isso é aplicada uma cata à BlockChain, que transformaria o primeiro elemento da soma num Magic Number e no segundo adicionava a sua informação à lista já presente. Após isso, duplicavamos a lista obtida, tendo um tuplo com a mesma lista. Depois disso, aplicavamos o produto ao tuplo, tendo de um lado o tamanho da lista e o outro o tamanho da lista depois de remover os repetidos de uma lista. Apos isso, comparavamos os dois elementos do tuplo, usando a função uncurry (==)
+Para verificar a validade dos \emph{Magic Numbers} é necessário primeiramente obter uma lista de todos os \emph{Magic Numbers}. Para isso é aplicada uma cata à \emph{BlockChain}, que transformaria o primeiro elemento da soma num \emph{Magic Number} e no segundo adicionava a sua informação à lista já presente. Após isso, duplicavamos a lista obtida, tendo um tuplo com a mesma lista. Depois disso, aplicavamos o produto ao tuplo, tendo de um lado o tamanho da lista e o outro o tamanho da lista depois de remover os repetidos de uma lista. Apos isso, comparavamos os dois elementos do tuplo, usando a função \textbf{uncurry (==)}
 
+
+DIAGRAMA
 
 \begin{code}
 isValidMagicNr = uncurry (==). (length>< (length.nub)) . dup . cataBlockchain f
         where f = either (singl.p1) (cons.(p1><id)) 
-
 \end{code}
 
 
@@ -1051,6 +1074,8 @@ isValidMagicNr = uncurry (==). (length>< (length.nub)) . dup . cataBlockchain f
 
 Tal como definido anteriormente temos para o tipo de dados pedido as funções básicas que trabalham sobre o mesmo.
 Estas seguem a mesma linha de pensamento, fazendo adptações à estrutura presente agora.
+
+\subsubsection{Definições iniciais}
 
 \begin{code}
 
@@ -1062,7 +1087,6 @@ inQTree (Right (a,(b,(c,d)))) = Block a b c d
 outQTree (Cell a b c) = i1 (a,(b,c))
 outQTree (Block a b c d) = i2 (a,(b,(c,d)))
 \end{code}
-
 
 No caso da base deste tipo, são passadas duas funções, a função que é aplicada no tipo a da QTree e a funçao que será aplicada a cada uma das QTree presentes no block.
 
@@ -1091,9 +1115,10 @@ instance Functor QTree where
     fmap gen = cataQTree (inQTree. baseQTree gen id)
 \end{code}
 
+\subsubsection{rotateQTree}
 
-O rotate pretende rodar a Qtree existente em 90 º graus. Para isso é necessário alterar o tamanho presente nas Cell.s
-Para realizar o rotate é aplicada uma cata à Qtree, em que a depois de aplicada uma função f é aplicada a in da Qtree, para poder obter de novo Qtree. Esta função f é definida como uma soma sendo que do primeiro lado seria aplicado o produto entre id e swap, e do segundo lado teriamos de realizar um split para poder transformar o tuplo presente. Do primeiro lado iriamos colocar a projeção 1 após a projeção 2 após a projeção 2. Do segundo lado teriamos de realizar um novo split, para poder criar um tuplo neste local. Este tuplo seria criado com a projeção 1 em conjunto com um novo split. Este seria formado pela projeção 2 após a projeção 2 após a projeção 2 e pela projeção 1 após a projeção 2. Isto é necessário para criar o tuplo com as Qtree presentes no Block.
+O rotate pretende rodar a \emph{Qtree} existente em \textbf{90 graus}. Para isso é necessário alterar o tamanho presente nas \emph{Cell}.
+Para realizar o \emph{rotate} é aplicada um \emph{cata} à \emph{Qtree}, em que a depois de aplicada uma função \emph{f} é aplicada a \emph{in} da \emph{Qtree}, para poder obter de novo a \emph{Qtree}. Esta função \emph{f} é definida como uma soma sendo que do primeiro lado seria aplicado o produto entre \emph{id} e \emph{swap}, e do segundo lado teriamos de realizar um \emph{split} para poder transformar o tuplo presente. Do primeiro lado iriamos colocar a \emph{projeção 1} após a \emph{projeção 2} após a \emph{projeção 2}. Do segundo lado teriamos de realizar um novo \emph{split}, para poder criar um tuplo neste local. Este tuplo seria criado com a \emph{projeção 1} em conjunto com um novo \emph{split}. Este seria formado pela \emph{projeção 2} após a \emph{projeção 2} após a \emph{projeção 2} e pela \emph{projeção 1} após a \emph{projeção 2}. Isto é necessário para criar o tuplo com as \emph{Qtree} presentes no \emph{Block}.
 
 \begin{code}
 rotateQTree = cataQTree (inQTree.f) -- inQTree para converter o either do cata para Qtree
@@ -1105,9 +1130,11 @@ rotateQTree = cataQTree (inQTree.f) -- inQTree para converter o either do cata p
 \end{code}
 
 
-No caso da scale é necessário multiplicar o tamanho dado pelo tamanho presente em cada Cell.
-Para isso é usada a função ana. Esta permite que seja criada uma QTree dada uma função de geração de um tipo C, dado como input.
-Esta função de geração neste caso transforma a QTree usando a função out e aplica-lhe uma função f. Esta função f é defenida pela soma entre uma função g e a identidade, visto apenas querermos alterar a informação nas Cell. Esta função g é defenida como um produto entre a indentidade e um produto cujas funções são a multiplicação do Integer do Cell pelo Scale dado.
+\subsubsection{scaleQTree}
+
+No caso da \emph{scale} é necessário multiplicar o tamanho dado pelo tamanho presente em cada \emph{Cell}.
+Para isso é usada a função \emph{ana}. Esta permite que seja criada uma \emph{QTree} dada uma função de geração de um tipo \emph{C}, dado como input.
+Esta função de geração neste caso transforma a \emph{QTree} usando a função \emph{out} e aplica-lhe uma função \emph{f}. Esta função \emph{f} é defenida pela \textbf{soma} entre uma função \emph{g} e a \emph{identidade}, visto apenas querermos alterar a informação nas \emph{Cell}. Esta função \emph{g} é defenida como um \textbf{produto} entre a \emph{identidade} e um \textbf{produto} cujas funções são a multiplicação do \emph{Integer} do \emph{Cell} pelo \emph{Scale} dado.
 
 \begin{code}
 
@@ -1117,17 +1144,20 @@ scaleQTree i = anaQTree (f . outQTree) -- Out para converter a Qtree em either p
 
 \end{code}
 
-Na função invert queremos apenas alterar a informação presente no tipo a da Cell. Para tal é usada o funtor defenido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
+
+\subsubsection{invertQTree}
+
+Na função \emph{invert} queremos apenas alterar a informação presente no tipo a da \emph{Cell}. Para tal é usada o funtor defenido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
 
 \begin{code}
---USAMOS A PixelRGBA8 porque é o monade que é guardado no a da QTree
-invertQTree = fmap invert -- FMAP PARA APLICAR A FUNÇÃO A CADA UMA DAS FOLHAS
+invertQTree = fmap invert
   where invert (PixelRGBA8 r g b a) = PixelRGBA8 (255-r) (255-g) (255-b) (a) 
 \end{code}
 
+\subsubsection{compressQTree}
 
-No caso da compress é criada uma função auxiliar cataQTree' que permite fazer a decrementação do valor passado à cata, valor esse que depende da profundidade da Qtree e do valor passado.
-A função geradora recorre a p2p para fazer a verificação. No caso de se verificar que o nivel é menor ou igual a 0, mantemos a estrutura igual, no caso de ser maior realizamos o prune. A função prune permite depois criar as novas cell com a informação das anteriores. Isto é feito através de um cata, que permite transformar a QTree presente nesse momento num unica Cell, no caso de este não ser já um cell. Na função transformadora é aplicada a uncell, função que cria a Cell dado um tuplo, após ser aplicada a assocl, sendo esta aplicada após a função f, que realiza a transformação do either para um tipo pretendido. Nesta função é aplicado a identidade do lado esquerdo e do lado direito é realizado um split, para poder ter a criação de num novo tuplo. Tuplo esse que a primeira parte é criada apartir da função colorQTree - obtendo a cor - após realizar a projeção 1. No outro lado do tuplo seria adicionada a informação dos sizes da QTree a ser criada.
+No caso da \emph{compress} é criada uma função auxiliar \emph{cataQTree'} que permite fazer a decrementação do valor passado à cata, valor esse que depende da profundidade da \emph{Qtree} e do valor passado.
+A função geradora recorre à \emph{p2p} para fazer a verificação. No caso de se verificar que o nivel é \textbf{menor ou igual a 0}, mantemos a estrutura igual, no caso de ser \textbf{maior} realizamos o \emph{prune}. A função \emph{prune} permite depois criar as novas cell com a informação das anteriores. Isto é feito através de um \emph{cata}, que permite transformar a \emph{QTree} presente nesse momento num unica \emph{Cell}, no caso de este não ser já um \emph{Cell}. Na função transformadora é aplicada a \emph{uncell}, função que cria a \emph{Cell} dado um tuplo, após ser aplicada a \emph{assocl}, sendo esta aplicada após uma função \emph{f}, que realiza a transformação do \emph{Either} para um tipo pretendido. Nesta função é aplicado a \emph{identidade} do lado esquerdo e do lado direito é realizado um \emph{split}. Nesse \emph{split}, a primeira parte é criada apartir da função \emph{colorQTree} - obtendo a cor - após realizar a \emph{projeção 1}. No outro lado do tuplo seria adicionada a informação dos sizes da \emph{QTree} a ser criada.
 
 
 \begin{code}
@@ -1147,10 +1177,11 @@ pruneQTree = cataQTree (uncell . assocl . f)
           colorQTree = cataQTree $ either p1 p1
 \end{code}
 
-No caso da outline, o que pretendemos fazer é criar uma Matrix de Bool, dada uma QTree e a função de verificação. Visto que apenas é necessário alterar a informação presente nas folhas da QTree podemos usar a função fmap, que permite transformar o tipo presente nas folhas, num novo tipo. Passamos assim a função f, recebida ao fmap. Após isso é necessário converter a QTree Bool para Matrix Bool, criando a borda nos casos necessários. Para tal é usada a função convert, que recebe uma soma, de um lado trata de 
+\subsubsection{outlineQTree}
+
+No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Bool}, dada uma \emph{QTree} e a função de verificação. Visto que apenas é necessário alterar a informação presente nas folhas da \emph{QTree} podemos usar a função \emph{fmap}, que permite transformar o tipo presente nas folhas, num novo tipo. Passamos assim a função \emph{f}, recebida ao \emph{fmap}. Após isso é necessário converter a \emph{QTree Bool} para \emph{Matrix Bool}, criando a \textbf{borda} nos casos necessários. Para tal é usada a função \emph{convert} que consiste num \emph{cata} que iria realizar no lado direito da \textbf{soma}, uma condição, que iria verificar se é possivel adicionar uma borda a uma dada \emph{Cell}, sabendo se esta tem mais de 3 pixeis de largura e altura (1 para cada lado da borda e o pixel do meio). Caso a condição seja verificada, é criada uma nova matrix com a informação da anterior, e no outro caso, temos a criação de uma \emph{Matrix} com a informação presente. A criação das \emph{Matrix} é feita usando as funções \emph{($<->$)} e \emph{($<$\textbar$>$)} que permitem criar a parte superior e inferior de uma \emph{Matrix} e a parte esquerda e direita de uma \emph{Matrix} respetivamente.
 
 \begin{code}
-
 convert :: QTree Bool -> Matrix Bool
 convert = cataQTree(f)
   where f = either g h 
@@ -1163,57 +1194,59 @@ outlineQTree f = convert .fmap f
 
 \subsection*{Problema 3}
 
-\textbf{Conversão l k :}
+\textbf{Conversão de l k:}
+
 \begin{eqnarray*}
 \start
-|lcbr(
+        |lcbr(
     l k 0 = k + 1
   )(
     l k (d + 1) = l k d + 1
   )|
-\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
-
-|lcbr(
-    l k . zero = succ
+%
+\just\equiv{ Igualdade extensional \{73\}; Cancelamento-x \{7\}}
+  |lcbr(
+    l k . (const 0) = succ . k
   )(
-    l k . succ = succ . l k
+    l k . succ = succ . p2 . (split (f k) (l k))
   )|
-
-\just\equiv{ Eq -+ }
-  \more
-    |either (l k . zero) (l k . succ) = either succ (succ . l k)|
-
-\just\equiv{ Fusão -+ (esq), Absorção -+ (dir)}
-  \more
-    |l k . either (zero) (succ) = (either (succ) (succ)) . (id + lk)|
-
-\qed
+\just\equiv{ Eq-+\{27\}
+%
+|either (l k . (const 0)) (l k . succ) = either (succ . k) (succ . p2 . (split (f k) (l k)))|
+\just\equiv{ Fusão-+; in = |either (const 0) (succ)| ; Absorção-+}
+%
+|l k . in = (either (succ . k) (succ . p2)) . (id + (split (f k) (l k)))|
+\just\equiv{ F f = (id + f)}
+%
+|l k . in = (either (succ . k) (succ . p2)) . F (split (f k) (l k))|
 \end{eqnarray*}
 
 \textbf{Conversão de f k:}
 
 \begin{eqnarray*}
 \start
-        |lcbr(
+|lcbr(
     f k 0 = 1
   )(
     f k (d + 1) = (d + k  + 1) * f k d
   )|
-\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
-   |lcbr(
+\just\equiv{ Igualdade extensional\{73\}; (d + k  + 1) = l k d}
+        |lcbr(
     f k . (const 0) = (const 1)
   )(
     f k . succ = mul (split (f k) (l k))
   )|
-\just\equiv{Eq-+ \{27\} x 2, Natural-id \{1\} x 2}
-\more
-|either(f k . 0) (f k . succ) = either(1 . id) (mul . split (l k) (f k))|
+\just\equiv{ Eq-+ \{27\}}
 
-\just\equiv{Fusão-+ \{20\}, Absorção-+ \{22\}}
-\more
-|f k . either (0) (succ) = either(1) (mul) . (id + split (lk) (fk))|
+|either (f k . (const 0)) (f k . succ) = either (const 1) (mul (split (l k) (f k)))|
 
-\qed
+\just\equiv{ Fusão-+; in = |either (const 0) (succ)| ; Absorção-+}
+
+|f k . in = (either (const 1) (mul)) . (id + (split (l k) (f k)))|
+
+\just\equiv{ F f = (id + f) }
+
+|f k . in = (either (const 1) (mul)) . F (split (l k) (f k))| $<=>$ |f k . in = (either (const 1) (mul)) . (id + (split (l k) (f k)))|
 \end{eqnarray*}
 
 
@@ -1235,8 +1268,8 @@ outlineQTree f = convert .fmap f
     g (d + 1) = (d + 1) * g d
   )|
 
-\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
-       |lcbr(
+\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\}}
+  |lcbr(
     g . zero = one
   )(
     g . succ = mul . split s g
@@ -1246,14 +1279,17 @@ outlineQTree f = convert .fmap f
     |either (g . zero) (g . succ) = either one (mul . split s g)|
 
 
-\just\equiv{ }
+\just\equiv{Fusão-+, Absorção-+}
+|g . in = (either (const 1) (mul)) . (id + (split s g)|
 
-
+\just\equiv{ F f = (id + f)}
+%
+|g . in = (either (const 1) (mul)) . F (split s g)| $<=>$| (either (const 1) (mul)) . (id + (split s g))|
 \qed
 \end{eqnarray*}
 
 
-\textbf{Conversão s: }
+\textbf{Conversão s:}
 \begin{eqnarray*}
 \start
   |lcbr(
@@ -1262,19 +1298,23 @@ outlineQTree f = convert .fmap f
     s (d + 1) = (s d) + 1
   )|
 
-\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\} x 2}
- |lcbr(
-    s . zero = one
+\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\}, Cancelamento-x}
+|lcbr(
+  s . 0 = 1
   )(
-    s . succ = succ . s
-  )|
+  s . succ = succ . p2 . (split g s)
+  ) 
+|
+
+\just\equiv{Eq-+}
+|either (s . (const 0)) (s . succ) = either (const 1) (succ . p2 . (split g s))|
+
 
 \qed
 \end{eqnarray*}
 
 
 \begin{code}
-
 
 flatet :: ((Integer,Integer),(Integer,Integer)) -> (Integer,Integer,Integer,Integer)
 flatet ((a,b),(c,d)) = (a,b,c,d) 
@@ -1303,6 +1343,8 @@ loop = flatet . f .unflatet
 \subsection*{Problema 4}
 
 
+\subsubsection{Definições iniciais}
+
 \begin{code}
 
 inFTree (Left b) = Unit b
@@ -1321,19 +1363,27 @@ instance Bifunctor FTree where
     bimap f g = cataFTree ( inFTree . baseFTree f g id)
 \end{code}
 
+\subsubsection{generatePTree}
 
-De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesma como argumento é necessário aplicar a função \textbf{outNat} para gerar um \emph{Either} que será o argumento de um anamorfismo aplicado à ordem recebida. Sendo assim, a função g devolve, também, um \emph{Either}, pois é o tipo da nossa \emph{Ftree}. Como sabemos que uma \emph{Unit} corresponde ao maior quadrado que detém lado igual a 1, o lado esquerdo da soma corresponde ao Float 1.0. Ao lado direito queremos multiplicar $sqrt(2)/2$ elevado à ordem + 1 . 
+De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesma como argumento é necessário aplicar a função \emph{outNat} para gerar um \emph{Either} que será o argumento de um \emph{ana} aplicado à ordem recebida. Sendo assim, a função \emph{g} devolve, também, um \emph{Either}, pois é o tipo da nossa \emph{Ftree}. Como sabemos que uma \emph{Unit} corresponde ao maior quadrado que detém lado igual a 1, o lado esquerdo da \textbf{soma} corresponde ao \emph{Float 1.0}. Ao lado direito queremos multiplicar $sqrt(2)/2$ elevado à ordem + 1 . 
 
 \begin{code}
 generatePTree =  anaFTree(g . outNat)
       where g = const (1.0) -|- (split (((sqrt(2)/2) ^) . succ) (split id id))
+\end{code}
 
+
+\subsubsection{drawPTree}
+
+\begin{code}
 drawPTree = undefined
 \end{code}
 
 \subsection*{Problema 5}
 
-A função singleton, dada uma cor cria um Bag com um berlinde dessa mesma cor. Para isso, foi aplicado um split de maneira a ser criado o tuplo (cor, número de berlindes dessa cor). De seguida, é aplicado o singl a esse resultado para criar uma lista com o tuplo, após isso basta aplicar o construtor do Bag.
+\subsubsection{singletonbag}
+
+A função \emph{singleton}, dada uma cor cria um \emph{Bag} com um berlinde dessa mesma cor. Para isso, foi aplicado um \emph{split} de maneira a ser criado o tuplo \emph{(cor, número de berlindes dessa cor)}. De seguida, é aplicado o \emph{singl} a esse resultado para criar uma lista com o tuplo, após isso basta aplicar o construtor do \emph{Bag}.
 
 \begin{code}
 -- Dada uma cor constroi um bag com um berlinde dessa cor 
@@ -1341,7 +1391,9 @@ singletonbag = B . singl . (split id (const(1)))
 
 \end{code}
 
-Para a multiplicação de Bags é necessário o desdobramento do tipo recebido pela \textbf{muB} (\emph{Bag (Bag (Bag Marble))}) de maneira a ser obtido apenas uma lista do tipo [(Bag a, Int)] através da aplicação da função \textbf{unB} a todos os tuplos da lista. Seguidamente é, ainda, necessário uma nova aplicação da função \textbf{unB} para ficar com o tipo desejado. Assim, conseguimos efetuar a multiplicação do inteiro por todos os inteiros de todos os Bags (caso existam) através de um \textbf{map}. No final, de maneira a ser devolvido novamente um \emph{Bag a}, é preciso concatenar a lista de listas devolvida pelo map e aplicar o construtor do Bag.
+\subsubsection{muB}
+
+Para a multiplicação de \emph{Bags} é necessário o desdobramento do tipo recebido pela \emph{muB} (\emph{Bag (Bag (Bag Marble))}) de maneira a ser obtido apenas uma lista do tipo \emph{[(Bag a, Int)]} através da aplicação da função \emph{unB} a todos os tuplos da lista. Seguidamente é, ainda, necessário uma nova aplicação da função \emph{unB} para ficar com o tipo desejado. Assim, conseguimos efetuar a multiplicação do inteiro por todos os inteiros de todos os \emph{Bags} (caso existam) através de um \emph{map}. No final, de maneira a ser devolvido novamente um \emph{Bag a}, é preciso concatenar a lista de listas devolvida pelo \emph{map} e aplicar o construtor do \emph{Bag}.
 
 \begin{code}
 -- Multiplicação do monade
@@ -1349,7 +1401,9 @@ muB = B . concat . (map (f) . unB . fmap unB)
   where f (a,b) = map (id><(*b)) a
 \end{code}
 
-Como é referido no enunciado, um exemplo de uma Distribuição é dada por \emph{d1 = D [(’A’, 0.02),(’B’, 0.12),(’C’, 0.29),(’D’, 0.35),(’E’, 0.22)]}. Logo, a um \emph{bagOfMarbles} é aplicado uma \emph{unB} de maneira a ser retirada apenas a lista de tuplos que constitui um Bag, de seguida efetuamos um somatório das quantidades de berlindes de cada cor e geramos um tuplo ([a,Int], Total de berlindes). Agora, a cada elemento da lista, através de um \textbf{map} é dividido o número total de berlindes pelo número de berlindes de cada cor e gerados os tuplos constituintes de uma distribuição.
+\subsubsection{dist}
+
+Como é referido no enunciado, um exemplo de uma \textbf{Distribuição} é dada por \emph{d1 = D [(’A’, 0.02),(’B’, 0.12),(’C’, 0.29),(’D’, 0.35),(’E’, 0.22)]}. Logo, a um \emph{bagOfMarbles} é aplicado uma \emph{unB} de maneira a ser retirada apenas a lista de tuplos que constitui um \emph{Bag}, de seguida efetuamos um somatório das quantidades de berlindes de cada cor e geramos um tuplo \emph{([a,Int], Total de berlindes)}. Agora, a cada elemento da lista, através de um \emph{map} é dividido o número total de berlindes pelo número de berlindes de cada cor e gerados os tuplos constituintes de uma distribuição.
 
 \begin{code}
  
