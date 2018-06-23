@@ -1080,8 +1080,22 @@ ledger = (cataList h).col.(cataList g).(cataList f).allTransactions
 
 Para verificar a validade dos \emph{Magic Numbers} é necessário primeiramente obter uma lista de todos os \emph{Magic Numbers}. Para isso é aplicada uma cata à \emph{BlockChain}, que transformaria o primeiro elemento da soma num \emph{Magic Number} e no segundo adicionava a sua informação à lista já presente. Após isso, duplicavamos a lista obtida, tendo um tuplo com a mesma lista. Depois disso, aplicavamos o produto ao tuplo, tendo de um lado o tamanho da lista e o outro o tamanho da lista depois de remover os repetidos de uma lista. Apos isso, comparavamos os dois elementos do tuplo, usando a função \textbf{uncurry (==)}
 
-
-DIAGRAMA
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |MagicNumber* >< MagicNumber*|
+           \ar[d]_-{|length >< (length.nub|}
+&
+    |BlockChain|
+          \ar[d]_-{|isValidMagicNr|}
+          \ar[l]^-{|dup.|\cata{f}}
+\\
+    |Int >< Int|
+          \ar[r]_-{|uncurry (==)|}
+&
+    |Bool|
+         
+}
+\end{eqnarray*}
 
 \begin{code}
 isValidMagicNr = uncurry (==). (length>< (length.nub)) . dup . cataBlockchain f
@@ -1139,6 +1153,25 @@ instance Functor QTree where
 O rotate pretende rodar a \emph{Qtree} existente em \textbf{90 º graus}. Para isso é necessário alterar o tamanho presente nas \emph{Cell}.
 Para realizar o \emph{rotate} é aplicada um \emph{cata} à \emph{Qtree}, em que a depois de aplicada uma função \emph{f} é aplicada a \emph{in} da \emph{Qtree}, para poder obter de novo a \emph{Qtree}. Esta função \emph{f} é definida como uma soma sendo que do primeiro lado seria aplicado o produto entre \emph{id} e \emph{swap}, e do segundo lado teriamos de realizar um \emph{split} para poder transformar o tuplo presente. Do primeiro lado iriamos colocar a \emph{projeção 1} após a \emph{projeção 2} após a \emph{projeção 2}. Do segundo lado teriamos de realizar um novo \emph{split}, para poder criar um tuplo neste local. Este tuplo seria criado com a \emph{projeção 1} em conjunto com um novo \emph{split}. Este seria formado pela \emph{projeção 2} após a \emph{projeção 2} após a \emph{projeção 2} e pela \emph{projeção 1} após a \emph{projeção 2}. Isto é necessário para criar o tuplo com as \emph{Qtree} presentes no \emph{Block}.
 
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |QTree|
+           \ar[d]_-{|rotaQTree|}
+&
+    |A + QTree^4|
+          \ar[d]_-{|id +| \cata{in.(g+h)}}
+          \ar[l]^-{inQTree}
+\\
+    |QTree|
+&
+    |A + QTree ^ 4|
+          \ar[l]_-{in . f}     
+}
+\end{eqnarray*}
+
+
+
 \begin{code}
 rotateQTree = cataQTree (inQTree.f) -- inQTree para converter o either do cata para Qtree
   where f = g -|- h  -- Co-produto para poder criar um either no fim
@@ -1155,6 +1188,24 @@ No caso da \emph{scale} é necessário multiplicar o tamanho dado pelo tamanho p
 Para isso é usada a função \emph{ana}. Esta permite que seja criada uma \emph{QTree} dada uma função de geração de um tipo \emph{C}, dado como input.
 Esta função de geração neste caso transforma a \emph{QTree} usando a função \emph{out} e aplica-lhe uma função \emph{f}. Esta função \emph{f} é defenida pela \textbf{soma} entre uma função \emph{g} e a \emph{identidade}, visto apenas querermos alterar a informação nas \emph{Cell}. Esta função \emph{g} é defenida como um \textbf{produto} entre a \emph{identidade} e um \textbf{produto} cujas funções são a multiplicação do \emph{Integer} do \emph{Cell} pelo \emph{Scale} dado.
 
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |QTree|
+           \ar[r]_-{|outQTree|}
+&
+    |A + QTree^4|
+\\
+    |QTree|
+          \ar[u]_-{|scaleQTree|}
+          \ar[r]_-{|f.outQTree|}
+&
+    |A + QTree ^ 4|
+          \ar[u]_-{|id +|\ana{f.outQTree}}     
+}
+\end{eqnarray*}
+
+
 \begin{code}
 
 scaleQTree i = anaQTree (f . outQTree) -- Out para converter a Qtree em either para a  função ana
@@ -1167,6 +1218,24 @@ scaleQTree i = anaQTree (f . outQTree) -- Out para converter a Qtree em either p
 \subsubsection*{invertQTree}
 
 Na função \emph{invert} queremos apenas alterar a informação presente no tipo a da \emph{Cell}. Para tal é usada o funtor defenido, sendo que este permite aplicar alteração apenas ao tipo da estrutura. A função criadora do novo pixel apenas altera o valor de cada pixel segundo a formula dada (255 - c).
+
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |QTree|
+           \ar[d]_-{|invert|}
+&
+    |F QTree|
+           \ar[l]^-{|inQTree|}
+           \ar[d]_-{|F invert|}
+\\
+    |QTree|
+          \ar[r]_-{|outQTree|}
+&
+    |QTree|
+}
+\end{eqnarray*}
+
 
 \begin{code}
 invertQTree = fmap invert
@@ -1265,6 +1334,24 @@ instance Bifunctor FTree where
 \subsubsection*{generatePTree}
 
 De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesma como argumento é necessário aplicar a função \emph{outNat} para gerar um \emph{Either} que será o argumento de um \emph{ana} aplicado à ordem recebida. Sendo assim, a função \emph{g} devolve, também, um \emph{Either}, pois é o tipo da nossa \emph{Ftree}. Como sabemos que uma \emph{Unit} corresponde ao maior quadrado que detém lado igual a 1, o lado esquerdo da \textbf{soma} corresponde ao \emph{Float 1.0}. Ao lado direito queremos multiplicar $sqrt(2)/2$ elevado à ordem + 1 . 
+
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |PTree|
+           \ar[r]_-{|outFTree|}
+&
+    |B + (A >< FTree)^2|
+\\
+    |Int|
+          \ar[u]^-{|generatePTree|}
+          \ar[r]_-{|outNat|}
+&
+    |1+Int|
+          \ar[u]_-{\cata{g}}
+}
+\end{eqnarray*}
+
 
 \begin{code}
 generatePTree =  anaFTree(g . outNat)
