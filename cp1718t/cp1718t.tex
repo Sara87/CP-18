@@ -1369,22 +1369,22 @@ A função \emph{hylo} recebe duas funções, a primeira transformando um dado t
 
 De seguida é apresentada a defenição da função \emph{allTransactions}, que permite obter a \textbf{lista de Transações} de uma dada \emph{blockchain}. Para tal é aplicada a função \emph{cata} à \emph{BlockChain} sendo passada a função transformadora. Esta função é a função de transformação de uma soma, sendo do primeiro lado aplicado a projeção 2, que obtem o tuplo \emph{(Time,Transactions)} do block e após isso sendo a aplicada de novo a projeção 2 para se obter as \emph{Transactions}. Do segundo lado da soma temos de aplicar a concatenação das \emph{Transactions} de um elemento, sendo o mesmo obtido da mesma forma, com as \emph{Transcations} já obtidas.   
 
-
 \begin{eqnarray*}
 \xymatrix@C=2cm{
-    \ensuremath{\N_0}
-           \ar[d]_-{\ensuremath{\cata{\Varid{g}}}}
+    \ensuremath{\Conid{Blockchain}}
+           \ar[d]_-{\cata{get\_transaction}}
+           \ar[r]_-{\ensuremath{\Varid{outBlockchain}}}
 &
-    \ensuremath{\mathrm{1}\mathbin{+}\N_0}
-           \ar[d]^-{\ensuremath{\Varid{id}\mathbin{+}\cata{\Varid{g}}}}
-           \ar[l]_-{\ensuremath{\mathsf{in}}}
+    \ensuremath{\Conid{Block}\mathbin{+}(\Conid{Block}\times\Conid{Blockchain})}
+           \ar[d]^-{\ensuremath{\Varid{id}\mathbin{+}\Varid{id}\times}\cata{get\_transaction}}
 \\
-     \ensuremath{\mathit B}
+     \ensuremath{\Conid{Transactions}}
 &
-     \ensuremath{\mathrm{1}\mathbin{+}\mathit B}
-           \ar[l]^-{\ensuremath{\Varid{g}}}
+     \ensuremath{\Conid{Block}\mathbin{+}(\Conid{Block}\times\Conid{Transactions})}
+           \ar[l]^-{\ensuremath{\Varid{get\char95 transaction}}}
 }
 \end{eqnarray*}
+
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1405,8 +1405,27 @@ Após o primeiro \emph{cata}, é necessário criar a lista que guardaria os tupl
 \par
 Após o segundo \emph{cata} é apenas necessário adicionar a informação presente na \emph{[Values])} para obter o \emph{Ledger} pretendido. Para isso é utilizada uma \emph{cata} que transforma apenas a segunda parte do tuplo presente.
 
-
-DIAGRAMA
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Conid{Blockchain}}
+           \ar[d]_-{\ensuremath{\Varid{ledger}}}
+           \ar[r]^-{\ensuremath{\Varid{allTransactions}}}
+&
+    \ensuremath{\Conid{Transactions}}
+          \ar[r]^-{\cata{f}}
+&
+    \ensuremath{((\Conid{Entity}\times\Conid{Value})\times(\Conid{Entity}\times\Conid{Value}))\mathbin{*}}
+          \ar[d]^-{\cata{g}}
+\\
+    \ensuremath{\Conid{Ledger}}
+&
+    \ensuremath{(\Conid{Entity}\times\Conid{Value}\mathbin{*})\mathbin{*}}
+          \ar[l]_-{\cata{h}}
+&
+    \ensuremath{(\Conid{Entity}\times\Conid{Value})\mathbin{*}}
+          \ar[l]_-{collect}
+}
+\end{eqnarray*}
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -1674,9 +1693,9 @@ No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Boo
 \start
         \ensuremath{\begin{lcbr}\Varid{l}\;\Varid{k}\;\mathrm{0}\mathrel{=}\Varid{k}\mathbin{+}\mathrm{1}\\\Varid{l}\;\Varid{k}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}\Varid{l}\;\Varid{k}\;\Varid{d}\mathbin{+}\mathrm{1}\end{lcbr}}
 %
-\just\equiv{ Igualdade extensional \{73\}; Cancelamento-x \{7\}}
+\just\equiv{ Igualdade extensional; Cancelamento-x}
   \ensuremath{\begin{lcbr}\Varid{l}\;\Varid{k}\comp \underline{\mathrm{0}}\mathrel{=}\succ \comp \Varid{k}\\\Varid{l}\;\Varid{k}\comp \succ \mathrel{=}\succ \comp \p2\comp \conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\end{lcbr}}
-\just\equiv{ Eq-+\{27\}
+\just\equiv{Eq-+}
 %
 \ensuremath{\alt{\Varid{l}\;\Varid{k}\comp \underline{\mathrm{0}}}{\Varid{l}\;\Varid{k}\comp \succ }\mathrel{=}\alt{\succ \comp \Varid{k}}{\succ \comp \p2\comp \conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}}}
 \just\equiv{ Fusão-+; in = \ensuremath{\alt{\underline{\mathrm{0}}}{\succ }} ; Absorção-+}
@@ -1694,7 +1713,7 @@ No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Boo
 \ensuremath{\begin{lcbr}\Varid{f}\;\Varid{k}\;\mathrm{0}\mathrel{=}\mathrm{1}\\\Varid{f}\;\Varid{k}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}(\Varid{d}\mathbin{+}\Varid{k}\mathbin{+}\mathrm{1})\mathbin{*}\Varid{f}\;\Varid{k}\;\Varid{d}\end{lcbr}}
 \just\equiv{ Igualdade extensional\{73\}; (d + k  + 1) = l k d}
         \ensuremath{\begin{lcbr}\Varid{f}\;\Varid{k}\comp \underline{\mathrm{0}}\mathrel{=}\underline{\mathrm{1}}\\\Varid{f}\;\Varid{k}\comp \succ \mathrel{=}\Varid{mul}\;\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\end{lcbr}}
-\just\equiv{ Eq-+ \{27\}}
+\just\equiv{ Eq-+}
 
 \ensuremath{\alt{\Varid{f}\;\Varid{k}\comp \underline{\mathrm{0}}}{\Varid{f}\;\Varid{k}\comp \succ }\mathrel{=}\alt{\underline{\mathrm{1}}}{\Varid{mul}\;\conj{\Varid{l}\;\Varid{k}}{\Varid{f}\;\Varid{k}}}}
 
@@ -1712,8 +1731,13 @@ No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Boo
 
 \begin{eqnarray*}
 \start
-\just\equiv{Fokkinga \{50\}}
-    \ensuremath{\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\mathrel{=}}\cata{\ensuremath{\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\succ }{\succ }}}}
+
+\just\equiv{Fokkinga; in = [0,succ]}
+\ensuremath{\begin{lcbr}\Varid{f}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\mathrm{1}}{\Varid{mul}}\comp (\Varid{id}\mathbin{+}\conj{\Varid{l}\;\Varid{k}}{\Varid{f}\;\Varid{k}})\\\Varid{l}\;\Varid{k}\comp \mathbf{in}\mathrel{=}\alt{\succ }{\succ }\comp \p2\comp (\Varid{id}\mathbin{+}\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}})\end{lcbr}}
+
+\more
+\ensuremath{\conj{\Varid{f}\;\Varid{k}}{\Varid{l}\;\Varid{k}}\mathrel{=}}\cata{\ensuremath{\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\succ }{\succ }\comp \p2}}}
+
 \qed
 \end{eqnarray*}
 
@@ -1722,10 +1746,10 @@ No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Boo
 \start
  \ensuremath{\begin{lcbr}\Varid{g}\;\mathrm{0}\mathrel{=}\mathrm{1}\\\Varid{g}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}(\Varid{d}\mathbin{+}\mathrm{1})\mathbin{*}\Varid{g}\;\Varid{d}\end{lcbr}}
 
-\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\}}
+\just\equiv{ Igualdade extensional x 2, Def-comp}
   \ensuremath{\begin{lcbr}\Varid{g}\comp \Varid{zero}\mathrel{=}\Varid{one}\\\Varid{g}\comp \succ \mathrel{=}\Varid{mul}\comp \conj{\Varid{s}}{\Varid{g}}\end{lcbr}}
 
-\just\equiv{ Eq-+ \{27\} }
+\just\equiv{ Eq-+}
     \ensuremath{\alt{\Varid{g}\comp \Varid{zero}}{\Varid{g}\comp \succ }\mathrel{=}\alt{\Varid{one}}{\Varid{mul}\comp \conj{\Varid{s}}{\Varid{g}}}}
 
 
@@ -1744,12 +1768,76 @@ No caso da \emph{outline}, o que pretendemos fazer é criar uma \emph{Matrix Boo
 \start
   \ensuremath{\begin{lcbr}\Varid{s}\;\mathrm{0}\mathrel{=}\mathrm{1}\\\Varid{s}\;(\Varid{d}\mathbin{+}\mathrm{1})\mathrel{=}(\Varid{s}\;\Varid{d})\mathbin{+}\mathrm{1}\end{lcbr}}
 
-\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\}, Cancelamento-x}
+\just\equiv{ Igualdade extensional  x 2, Def-comp ; Cancelamento-x}
 \ensuremath{\begin{lcbr}\Varid{s}\comp \mathrm{0}\mathrel{=}\mathrm{1}\\\Varid{s}\comp \succ \mathrel{=}\succ \comp \p2\comp \conj{\Varid{g}}{\Varid{s}}\end{lcbr}}
 
 \just\equiv{Eq-+}
 \ensuremath{\alt{\Varid{s}\comp \underline{\mathrm{0}}}{\Varid{s}\comp \succ }\mathrel{=}\alt{\underline{\mathrm{1}}}{\succ \comp \p2\comp \conj{\Varid{g}}{\Varid{s}}}}
 
+\just\equiv{Fusão-+ ; in = [0, succ] ; Absorção-+ ; F f = id+f}
+\ensuremath{\Varid{s}\comp \mathbf{in}\mathrel{=}\alt{\mathrm{1}}{\succ \comp \p2}\comp (\Varid{id}\mathbin{+}\conj{\Varid{g}}{\Varid{s}})}
+
+\qed
+\end{eqnarray*}
+
+\textbf{Fokkinga:}
+
+\begin{eqnarray*}
+\start
+\just\equiv{Fokkinga ;in = [0,succ]}
+\ensuremath{\begin{lcbr}\Varid{g}\comp \mathbf{in}\mathrel{=}\alt{\mathrm{1}}{\Varid{mul}}\comp (\Varid{id}\mathbin{+}\conj{\Varid{s}}{\Varid{g}})\\\Varid{s}\comp \mathbf{in}\mathrel{=}\alt{\mathrm{1}}{\succ }\comp (\Varid{id}\mathbin{+}\conj{\Varid{g}}{\Varid{s}})\end{lcbr}}
+
+\ensuremath{\conj{\Varid{g}}{\Varid{s}}\mathrel{=}(\Varid{cata}\;\conj{\alt{\mathrm{1}}{\Varid{mul}}}{\alt{\mathrm{1}}{\succ }\comp \p2})}
+
+\qed
+\end{eqnarray*}
+
+\textbf{Banana-split:}
+
+\begin{eqnarray*}
+\start
+  \ensuremath{\conj{\cata{\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\succ }{\succ \comp \p2}}}}{\cata{\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\Varid{one}}{\succ \comp \p2}}}}}
+
+\just\equiv{Banana-Split}
+
+  \ensuremath{\cata{\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\succ }{\succ \comp \p2}}\times\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\Varid{one}}{\succ \comp \p2}}\comp \conj{\Conid{F}\;\p1}{\Conid{F}\;\p2}}}
+
+\just\equiv{Absorção - x}
+
+  \ensuremath{\cata{\conj{\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\succ }{\succ \comp \p2}}\comp (\Conid{F}\;\p1)}{\conj{\alt{\Varid{one}}{\Varid{mul}}}{\alt{\Varid{one}}{\succ \comp \p2}}\comp (\Conid{F}\;\p2)}}}
+
+\just\equiv{Fusão - x}
+
+  \ensuremath{\cata{\conj{\conj{\alt{\Varid{one}}{\Varid{mul}}\comp (\Conid{F}\;\p1)}{\alt{\succ }{\succ \comp \p2}\comp (\Conid{F}\;\p1)}}{\conj{\alt{\Varid{one}}{\Varid{mul}}\comp (\Conid{F}\;\p2)}{\alt{\Varid{one}}{\succ \comp \p2}\comp (\Conid{F}\;\p2)}}}}
+
+\just\equiv{Def F f = id + f}
+
+  \ensuremath{\cata{\conj{\conj{\alt{\Varid{one}}{\Varid{mul}}\comp (\Varid{id}\mathbin{+}\p1)}{\alt{\succ }{\succ \comp \p2}\comp (\Varid{id}\mathbin{+}\p1)}}{\conj{\alt{\Varid{one}}{\Varid{mul}}\comp (\Varid{id}\mathbin{+}\p2)}{\alt{\Varid{one}}{\succ \comp \p2}\comp (\Varid{id}\mathbin{+}\p2)}}}}
+
+\just\equiv{Absorção-+, Nat-id}
+
+  \ensuremath{\cata{\conj{\conj{\alt{\Varid{one}}{\Varid{mul}\comp \p1}}{\alt{\succ }{\succ \comp \p2\comp \p1}}}{\conj{\alt{\Varid{one}}{\Varid{mul}\comp \p2}}{\alt{\Varid{one}}{(\succ \comp \p2\comp \p2)}}}}}
+
+\just\equiv{Lei da Troca x 3}
+
+  \ensuremath{\cata{\alt{\conj{\conj{\Varid{one}}{\Varid{mul}\comp \p1}}{\conj{\succ }{\succ \comp \p2\comp \p1}}}{\conj{\conj{\Varid{one}}{\Varid{mul}\comp \p2}}{\conj{\Varid{one}}{\Varid{suc}\comp \p2\comp \p2}}}}}
+
+\qed
+\end{eqnarray*}
+
+\textbf{Assim,} 
+
+\begin{eqnarray*}
+\start
+
+\just\equiv{ for b i = \ensuremath{\Varid{cata}\;\alt{\underline{\Varid{i}}}{\Varid{b}}} }
+
+\ensuremath{\Varid{cata}\;\alt{\underline{\Varid{base}}}{\Varid{loop}}\mathrel{=}\cata{\alt{\conj{\conj{\Varid{one}}{\Varid{mul}\comp \p1}}{\conj{\succ }{\succ \comp \p2\comp \p1}}}{\conj{\conj{\Varid{one}}{\Varid{mul}\comp \p2}}{\conj{\Varid{one}}{\Varid{suc}\comp \p2\comp \p2}}}}}
+
+\just\equiv{ Eq-+ }
+    \ensuremath{\underline{\Varid{base}}\mathrel{=}\conj{\conj{\Varid{one}}{\succ }}{\conj{\Varid{one}}{\Varid{one}}}}
+\more
+    \ensuremath{\Varid{loop}\mathrel{=}\conj{\conj{\Varid{mul}\comp \p1}{\succ \comp \p2\comp \p1}}{\conj{\Varid{mul}\comp \p2}{\succ \comp \p2\comp \p2}}}
 
 \qed
 \end{eqnarray*}

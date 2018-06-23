@@ -1020,11 +1020,11 @@ De seguida é apresentada a defenição da função \emph{allTransactions}, que 
 \begin{eqnarray*}
 \xymatrix@@C=2cm{
     |Blockchain|
-           \ar[d]_-{|allTransactions|}
+           \ar[d]_-{\cata{get\_transaction}}
            \ar[r]_-{|outBlockchain|}
 &
     |Block + (Block >< Blockchain)|
-           \ar[d]^-{|id + id >< |\cata{(get_transaction)}}
+           \ar[d]^-{|id + id >< |\cata{get\_transaction}}
 \\
      |Transactions|
 &
@@ -1223,13 +1223,13 @@ outlineQTree f = convert .fmap f
     l k (d + 1) = l k d + 1
   )|
 %
-\just\equiv{ Igualdade extensional \{73\}; Cancelamento-x \{7\}}
+\just\equiv{ Igualdade extensional; Cancelamento-x}
   |lcbr(
     l k . (const 0) = succ . k
   )(
     l k . succ = succ . p2 . (split (f k) (l k))
   )|
-\just\equiv{ Eq-+\{27\}
+\just\equiv{Eq-+}
 %
 |either (l k . (const 0)) (l k . succ) = either (succ . k) (succ . p2 . (split (f k) (l k)))|
 \just\equiv{ Fusão-+; in = |either (const 0) (succ)| ; Absorção-+}
@@ -1255,7 +1255,7 @@ outlineQTree f = convert .fmap f
   )(
     f k . succ = mul (split (f k) (l k))
   )|
-\just\equiv{ Eq-+ \{27\}}
+\just\equiv{ Eq-+}
 
 |either (f k . (const 0)) (f k . succ) = either (const 1) (mul (split (l k) (f k)))|
 
@@ -1273,8 +1273,17 @@ outlineQTree f = convert .fmap f
 
 \begin{eqnarray*}
 \start
-\just\equiv{Fokkinga \{50\}}
-    |split (f k) (l k) =|\cata{|split (either one mul) (either succ succ)|}
+
+\just\equiv{Fokkinga; in = [0,succ]}
+|lcbr(
+  f k . in = either 1 (mul) . (id +(split (l k) (f k)))
+)(
+  l k . in = either succ succ . p2 . (id + (split (f k) (l k)) 
+)|
+
+\more
+|split (f k) (l k) =|\cata{|split (either one mul) (either succ succ . p2)|}
+
 \qed
 \end{eqnarray*}
 
@@ -1287,14 +1296,14 @@ outlineQTree f = convert .fmap f
     g (d + 1) = (d + 1) * g d
   )|
 
-\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\}}
+\just\equiv{ Igualdade extensional x 2, Def-comp}
   |lcbr(
     g . zero = one
   )(
     g . succ = mul . split s g
   )|
 
-\just\equiv{ Eq-+ \{27\} }
+\just\equiv{ Eq-+}
     |either (g . zero) (g . succ) = either one (mul . split s g)|
 
 
@@ -1317,7 +1326,7 @@ outlineQTree f = convert .fmap f
     s (d + 1) = (s d) + 1
   )|
 
-\just\equiv{ Igualdade extensional \{73\} x 2, Def-comp \{74\}, Cancelamento-x}
+\just\equiv{ Igualdade extensional  x 2, Def-comp ; Cancelamento-x}
 |lcbr(
   s . 0 = 1
   )(
@@ -1328,6 +1337,74 @@ outlineQTree f = convert .fmap f
 \just\equiv{Eq-+}
 |either (s . (const 0)) (s . succ) = either (const 1) (succ . p2 . (split g s))|
 
+\just\equiv{Fusão-+ ; in = [0, succ] ; Absorção-+ ; F f = id+f}
+|s . in = (either (1) (succ . p2)) . (id + split g s)|
+
+\qed
+\end{eqnarray*}
+
+\textbf{Fokkinga:}
+
+\begin{eqnarray*}
+\start
+\just\equiv{Fokkinga ;in = [0,succ]}
+|lcbr(
+  g . in = either 1 mul . (id + (split s g))
+)(
+  s . in = either 1 succ . (id + (split g s))
+)|
+
+|split g s = (cata(split(either 1 mul) (either 1 succ . p2)))|
+
+\qed
+\end{eqnarray*}
+
+\textbf{Banana-split:}
+
+\begin{eqnarray*}
+\start
+  |split (cataNat(split (either one mul) (either succ (succ . p2)))) (cataNat(split (either one mul) (either one (succ . p2))))|
+
+\just\equiv{Banana-Split}
+
+  |cataNat( (split (either one mul) (either succ (succ . p2))) >< (split (either one mul) (either one (succ . p2))) . split (F p1) (F p2))|
+
+\just\equiv{Absorção - x}
+
+  |cataNat(split ((split (either one mul) (either succ (succ . p2))) . (F p1)) ((split (either one mul) (either one (succ . p2))) . (F p2)))|
+
+\just\equiv{Fusão - x}
+
+  |cataNat(split (split ((either one mul) . (F p1)) ((either succ (succ . p2)) . (F p1))) (split ((either one mul) . (F p2)) ((either one (succ . p2)) . (F p2))))|
+
+\just\equiv{Def F f = id + f}
+
+  |cataNat(split (split ((either one mul) . (id + p1)) ((either succ (succ . p2)) . (id + p1))) (split ((either one mul) . (id + p2)) ((either one (succ . p2)) . (id + p2))))|
+
+\just\equiv{Absorção-+, Nat-id}
+
+  |cataNat(split (split (either one (mul . p1)) (either succ (succ . p2 . p1)))  (split (either one (mul . p2)) (either one ((succ .  p2 . p2)))))|
+
+\just\equiv{Lei da Troca x 3}
+
+  |cataNat(either (split (split one (mul . p1)) (split succ (succ . p2 . p1)))  (split (split one (mul . p2)) (split one (suc . p2 . p2))))|
+
+\qed
+\end{eqnarray*}
+
+\textbf{Assim,} 
+
+\begin{eqnarray*}
+\start
+
+\just\equiv{ for b i = |cata (either (const i) (b))| }
+
+|cata (either (const base) loop) = cataNat(either (split (split one (mul . p1)) (split succ (succ . p2 . p1)))  (split (split one (mul . p2)) (split one (suc . p2 . p2))))|
+
+\just\equiv{ Eq-+ }
+    |const base = split (split one succ) (split one one)|
+\more
+    |loop = split (split (mul.p1) (succ.p2.p1)) (split (mul.p2) (succ.p2.p2))|
 
 \qed
 \end{eqnarray*}
