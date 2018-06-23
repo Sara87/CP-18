@@ -1222,7 +1222,7 @@ Na função \emph{invert} queremos apenas alterar a informação presente no tip
 \begin{eqnarray*}
 \xymatrix@@C=2cm{
     |QTree|
-           \ar[d]_-{|invert|}
+           \ar[d]_-{|invertQTree|}
 &
     |F QTree|
            \ar[l]_-{|inQTree|}
@@ -1231,7 +1231,7 @@ Na função \emph{invert} queremos apenas alterar a informação presente no tip
     |QTree|
           \ar[r]_-{|outQTree|}
 &
-    |QTree|
+    |F QTree|
 }
 \end{eqnarray*}
 
@@ -1593,6 +1593,28 @@ singletonbag = B . singl . (split id (const(1)))
 \subsubsection{muB}
 
 Para a multiplicação de \emph{Bags} é necessário o desdobramento do tipo recebido pela \emph{muB} (\emph{Bag (Bag (Bag Marble))}) de maneira a ser obtido apenas uma lista do tipo \emph{[(Bag a, Int)]} através da aplicação da função \emph{unB} a todos os tuplos da lista. Seguidamente é, ainda, necessário uma nova aplicação da função \emph{unB} para ficar com o tipo desejado. Assim, conseguimos efetuar a multiplicação do inteiro por todos os inteiros de todos os \emph{Bags} (caso existam) através de um \emph{map}. No final, de maneira a ser devolvido novamente um \emph{Bag a}, é preciso concatenar a lista de listas devolvida pelo \emph{map} e aplicar o construtor do \emph{Bag}.
+
+\begin{eqnarray*}
+\xymatrix@@C=2cm{
+    |B [(B [(a,Int)],Int)]|
+           \ar[d]_-{|muB|}
+           \ar[r]_-{|fmap unB|}
+&
+    |B [([(a,Int)],Int)]|
+           \ar[r]_-{|unB|}
+&   
+    |[([(a,Int)],Int)]|
+            \ar[d]^-{|map f|}          
+\\
+    |B [(a,Int)]|
+&
+     |[(a,Int)]|
+           \ar[l]^-{|B|}
+&
+|     [[(a,Int)]]|
+            \ar[l]_-{|concat|}
+}
+\end{eqnarray*}
 
 \begin{code}
 muB = B . concat . (map (f) . unB . fmap unB)

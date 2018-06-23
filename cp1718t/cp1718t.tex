@@ -1649,7 +1649,7 @@ Na função \emph{invert} queremos apenas alterar a informação presente no tip
 \begin{eqnarray*}
 \xymatrix@C=2cm{
     \ensuremath{\Conid{QTree}}
-           \ar[d]_-{\ensuremath{\Varid{invert}}}
+           \ar[d]_-{\ensuremath{\Varid{invertQTree}}}
 &
     \ensuremath{\Conid{F}\;\Conid{QTree}}
            \ar[l]_-{\ensuremath{\Varid{inQTree}}}
@@ -1658,7 +1658,7 @@ Na função \emph{invert} queremos apenas alterar a informação presente no tip
     \ensuremath{\Conid{QTree}}
           \ar[r]_-{\ensuremath{\Varid{outQTree}}}
 &
-    \ensuremath{\Conid{QTree}}
+    \ensuremath{\Conid{F}\;\Conid{QTree}}
 }
 \end{eqnarray*}
 
@@ -2052,6 +2052,24 @@ De maneira a gerar uma árvore de Pitágoras de uma dada ordem, recebendo a mesm
 
 A função \emph{singleton}, dada uma cor cria um \emph{Bag} com um berlinde dessa mesma cor. Para isso, foi aplicado um \emph{split} de maneira a ser criado o tuplo \emph{(cor, número de berlindes dessa cor)}. De seguida, é aplicado o \emph{singl} a esse resultado para criar uma lista com o tuplo, após isso basta aplicar o construtor do \emph{Bag}.
 
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\Varid{a}}
+          \ar[d]_-{\ensuremath{\Varid{singletonbag}}}
+          \ar[r]^-{\ensuremath{\conj{\Varid{id}}{\mathrm{1}}}}
+&
+    \ensuremath{(\Varid{a},\mathrm{1})}
+           \ar[d]^-{\ensuremath{\Varid{singl}}}
+\\
+    \ensuremath{\mathit B\;[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]}
+&
+    \ensuremath{[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]}
+          \ar[l]^-{\ensuremath{\mathit B}}
+}
+\end{eqnarray*}
+
+
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
 \column{E}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -2062,6 +2080,28 @@ A função \emph{singleton}, dada uma cor cria um \emph{Bag} com um berlinde des
 \subsubsection{muB}
 
 Para a multiplicação de \emph{Bags} é necessário o desdobramento do tipo recebido pela \emph{muB} (\emph{Bag (Bag (Bag Marble))}) de maneira a ser obtido apenas uma lista do tipo \emph{[(Bag a, Int)]} através da aplicação da função \emph{unB} a todos os tuplos da lista. Seguidamente é, ainda, necessário uma nova aplicação da função \emph{unB} para ficar com o tipo desejado. Assim, conseguimos efetuar a multiplicação do inteiro por todos os inteiros de todos os \emph{Bags} (caso existam) através de um \emph{map}. No final, de maneira a ser devolvido novamente um \emph{Bag a}, é preciso concatenar a lista de listas devolvida pelo \emph{map} e aplicar o construtor do \emph{Bag}.
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\mathit B\;[\mskip1.5mu (\mathit B\;[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu],\Conid{Int})\mskip1.5mu]}
+           \ar[d]_-{\ensuremath{\mu }}
+           \ar[r]_-{\ensuremath{\mathsf{fmap}\;\Varid{unB}}}
+&
+    \ensuremath{\mathit B\;[\mskip1.5mu ([\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu],\Conid{Int})\mskip1.5mu]}
+           \ar[r]_-{\ensuremath{\Varid{unB}}}
+&   
+    \ensuremath{[\mskip1.5mu ([\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu],\Conid{Int})\mskip1.5mu]}
+            \ar[d]^-{\ensuremath{\map \;\Varid{f}}}          
+\\
+    \ensuremath{\mathit B\;[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]}
+&
+     \ensuremath{[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]}
+           \ar[l]^-{\ensuremath{\mathit B}}
+&
+\ensuremath{[\mskip1.5mu [\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]\mskip1.5mu]}
+            \ar[l]_-{\ensuremath{\Varid{concat}}}
+}
+\end{eqnarray*}
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
@@ -2077,6 +2117,22 @@ Para a multiplicação de \emph{Bags} é necessário o desdobramento do tipo rec
 \subsubsection{dist}
 
 Como é referido no enunciado, um exemplo de uma \textbf{Distribuição} é dada por \emph{d1 = D [(’A’, 0.02),(’B’, 0.12),(’C’, 0.29),(’D’, 0.35),(’E’, 0.22)]}. Logo, a um \emph{bagOfMarbles} é aplicado uma \emph{unB} de maneira a ser retirada apenas a lista de tuplos que constitui um \emph{Bag}, de seguida efetuamos um somatório das quantidades de berlindes de cada cor e geramos um tuplo \emph{([a,Int], Total de berlindes)}. Agora, a cada elemento da lista, através de um \emph{map} é dividido o número total de berlindes pelo número de berlindes de cada cor e gerados os tuplos constituintes de uma distribuição.
+
+\begin{eqnarray*}
+\xymatrix@C=2cm{
+    \ensuremath{\mathit B\;[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]}
+          \ar[d]_-{\ensuremath{\Varid{dist}}}
+          \ar[r]^-{\ensuremath{\Varid{unB}}}
+&
+    \ensuremath{[\mskip1.5mu (\Varid{a},\Conid{Int})\mskip1.5mu]}
+           \ar[d]^-{\ensuremath{\Varid{f}\comp \conj{\Varid{id}}{\Varid{sum}\comp \map \;(\p2)}}}
+\\
+    \ensuremath{\Conid{D}\;[\mskip1.5mu (\Varid{a},\Conid{Float})\mskip1.5mu]}
+&
+    \ensuremath{[\mskip1.5mu (\Varid{a},\Conid{Float})\mskip1.5mu]}
+          \ar[l]^-{\ensuremath{\Conid{D}}}
+}
+\end{eqnarray*}
 
 \begin{hscode}\SaveRestoreHook
 \column{B}{@{}>{\hspre}l<{\hspost}@{}}%
